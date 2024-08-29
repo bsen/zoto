@@ -45,7 +45,7 @@ const ProcessedOrders: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:3000/api/admin/zotoplatforms/panel/processed-orders?page=${currentPage}&limit=10`,
+        `https://server.zotoplatforms.com/api/admin/zotoplatforms/panel/processed-orders?page=${currentPage}&limit=10`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -64,7 +64,7 @@ const ProcessedOrders: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:3000/api/admin/zotoplatforms/panel/orders/${orderId}`,
+        `https://server.zotoplatforms.com/api/admin/zotoplatforms/panel/orders/${orderId}`,
         { status: newStatus },
         {
           headers: { Authorization: `Bearer ${token}` },
