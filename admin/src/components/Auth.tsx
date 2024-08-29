@@ -29,7 +29,7 @@ const Auth: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/admin/zotoplatforms/panel/login",
+        "https://server.zotoplatforms.com/api/admin/zotoplatforms/panel/login",
         {
           username,
           password,
