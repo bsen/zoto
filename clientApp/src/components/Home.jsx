@@ -11,6 +11,7 @@ const HomePage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     fetchServices();
@@ -31,7 +32,6 @@ const HomePage = () => {
   };
 
   const checkAuthStatus = async () => {
-    const token = localStorage.getItem("token");
     if (token) {
       try {
         const response = await axios.get(
@@ -269,12 +269,15 @@ const HomePage = () => {
                   </a>
                 </div>
               </div>
-              <button
-                onClick={handleLogout}
-                className="bg-rose-100 w-fit text-rose-600 mt-6 px-7 py-2 rounded-full"
-              >
-                Logout
-              </button>
+
+              {token && (
+                <button
+                  onClick={handleLogout}
+                  className="bg-rose-100 w-fit text-rose-600 mt-6 px-7 py-2 rounded-full"
+                >
+                  Logout
+                </button>
+              )}
             </div>
           </div>
 
