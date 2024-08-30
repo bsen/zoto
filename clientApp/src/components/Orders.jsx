@@ -25,6 +25,7 @@ const Orders = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+      console.log(response.data.data.orders);
       setOrders(response.data.data.orders);
       setTotalPages(response.data.data.totalPages);
       setIsLoading(false);
@@ -110,6 +111,9 @@ const Orders = () => {
                       <h3 className="text-xl font-semibold text-indigo-600">
                         {order.service.name}
                       </h3>
+                      <p className="text-gray-600">
+                        Order ID: {order.id.substring(0, 6)}
+                      </p>
                       <p className="text-gray-600">
                         Date: {new Date(order.datetime).toLocaleString()}
                       </p>

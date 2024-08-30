@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
-import { format, addDays } from "date-fns";
+import { format, addHours, setHours, setMinutes, isBefore } from "date-fns";
 import { MapPin, Clock, Loader } from "lucide-react";
 
 const Booking = () => {
@@ -15,15 +15,39 @@ const Booking = () => {
     name: "",
     phone: "",
     street: "",
-    city: "",
-    state: "",
-    country: "",
+    city: "Vellore",
+    state: "Tamil Nadu",
+    country: "India",
     zipCode: "",
-    bookingDate: format(addDays(new Date(), 1), "yyyy-MM-dd"),
+    bookingDate: format(addHours(new Date(), 4), "yyyy-MM-dd"),
     bookingTime: "12:00",
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
+
+  const postcodes = [
+    "632001",
+    "632002",
+    "632004",
+    "632006",
+    "632007",
+    "632008",
+    "632009",
+    "632010",
+    "632011",
+    "632012",
+    "632013",
+    "632014",
+    "632055",
+    "632057",
+    "632058",
+    "632059",
+    "632102",
+    "632105",
+    "632106",
+    "632114",
+    "632806",
+  ];
 
   useEffect(() => {
     fetchServiceData();
@@ -130,6 +154,26 @@ const Booking = () => {
     } else {
       console.error("Geolocation is not supported by this browser.");
     }
+  };
+
+  const getAvailableTimeSlots = () => {
+    const now = new Date();
+    const bookingDate = new Date(bookingData.bookingDate);
+    const isToday = bookingDate.toDateString() === now.toDateString();
+    let startHour = 8;
+
+    if (isToday) {
+      startHour = Math.max(now.getHours() + 4, 8);
+    }
+
+    const slots = [];
+    for (let hour = startHour; hour <= 20; hour++) {
+      const time = setMinutes(setHours(bookingDate, hour), 0);
+      if (!isToday || !isBefore(time, addHours(now, 4))) {
+        slots.push(format(time, "HH:mm"));
+      }
+    }
+    return slots;
   };
 
   const BookingSkeleton = () => (
@@ -279,7 +323,7 @@ const Booking = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Your Name
+                    Your Name *
                   </label>
                   <input
                     type="text"
@@ -292,7 +336,7 @@ const Booking = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone Number
+                    Phone Number *
                   </label>
                   <input
                     type="tel"
@@ -306,7 +350,7 @@ const Booking = () => {
                 </div>
                 <div className="relative">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Street Address
+                    Street Address *
                   </label>
                   <input
                     type="text"
@@ -316,7 +360,7 @@ const Booking = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
                     required
                   />
-                  <button
+                  {/* <button
                     type="button"
                     onClick={fetchGeolocation}
                     className="absolute right-2 top-8 text-indigo-600 hover:text-indigo-800"
@@ -327,83 +371,91 @@ const Booking = () => {
                     ) : (
                       <MapPin size={20} />
                     )}
-                  </button>
+                  </button> */}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      City
+                      City *
                     </label>
-                    <input
-                      type="text"
+                    <select
                       name="city"
                       value={bookingData.city}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       required
-                    />
+                    >
+                      <option value="Vellore">Vellore</option>
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      State
+                      State *
                     </label>
-                    <input
-                      type="text"
+                    <select
                       name="state"
                       value={bookingData.state}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       required
-                    />
+                    >
+                      <option value="Tamil Nadu">Tamil Nadu</option>
+                    </select>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Country
+                      Country *
                     </label>
-                    <input
-                      type="text"
+                    <select
                       name="country"
                       value={bookingData.country}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       required
-                    />
+                    >
+                      <option value="India">India</option>
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      ZIP Code
+                      ZIP Code *
                     </label>
-                    <input
-                      type="text"
+                    <select
                       name="zipCode"
                       value={bookingData.zipCode}
                       onChange={handleInputChange}
-                      maxLength={6}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       required
-                    />
+                    >
+                      <option value="">Select ZIP Code</option>
+                      {postcodes.map((code) => (
+                        <option key={code} value={code}>
+                          {code}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Booking Date
+                      Booking Date *
                     </label>
                     <input
                       type="date"
                       name="bookingDate"
                       value={bookingData.bookingDate}
                       onChange={handleInputChange}
-                      min={format(addDays(new Date(), 1), "yyyy-MM-dd")}
+                      min={format(new Date(), "yyyy-MM-dd")}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       required
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Booking Time
+                      Booking Time *
                     </label>
                     <select
                       name="bookingTime"
@@ -412,14 +464,11 @@ const Booking = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       required
                     >
-                      {Array.from({ length: 9 }, (_, i) => i + 10).map(
-                        (hour) => (
-                          <option key={hour} value={`${hour}:00`}>
-                            {hour > 12 ? hour - 12 : hour}:00{" "}
-                            {hour >= 12 ? "PM" : "AM"}
-                          </option>
-                        )
-                      )}
+                      {getAvailableTimeSlots().map((time) => (
+                        <option key={time} value={time}>
+                          {time}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>

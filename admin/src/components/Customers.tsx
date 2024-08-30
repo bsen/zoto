@@ -56,14 +56,14 @@ const Customers: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto py-8">
         <div className="h-10 w-48 bg-gray-300 rounded mb-6 animate-pulse" />
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-indigo-100">
               <tr>
                 {[...Array(5)].map((_, index) => (
-                  <th key={index} className="px-6 py-3">
+                  <th key={index} className="p-4">
                     <div className="h-4 bg-gray-300 rounded animate-pulse" />
                   </th>
                 ))}
@@ -101,25 +101,25 @@ const Customers: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">Customers</h1>
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-indigo-100">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Name
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Email
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Phone
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Joined
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Activity
               </th>
             </tr>
@@ -127,19 +127,19 @@ const Customers: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {customers.map((customer) => (
               <tr key={customer.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
+                <td className="p-4 whitespace-nowrap text-sm font-medium text-indigo-600">
                   {customer.name}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="p-4 whitespace-nowrap text-sm text-gray-900">
                   {customer.email}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="p-4 whitespace-nowrap text-sm text-gray-900">
                   {customer.phone}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="p-4 whitespace-nowrap text-sm text-gray-900">
                   {new Date(customer.createdAt).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="p-4 whitespace-nowrap text-sm text-gray-900">
                   {customer._count.bookings} bookings, {customer._count.reviews}{" "}
                   reviews
                 </td>

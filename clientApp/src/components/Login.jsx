@@ -72,9 +72,18 @@ const Login = () => {
     }
   };
 
+  const letterVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
+  const underlineVariants = {
+    hidden: { scaleX: 0 },
+    visible: { scaleX: 1, transition: { duration: 0.5, ease: "easeInOut" } },
+  };
+
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-indigo-600 to-indigo-800 relative overflow-hidden">
-      {/* Animated background elements */}
+    <div className="h-screen flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-indigo-600 to-indigo-800 relative overflow-y-auto no-scrollbar">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(10)].map((_, i) => (
           <div
@@ -98,13 +107,35 @@ const Login = () => {
         transition={{ duration: 0.8 }}
         className="w-full max-w-md space-y-8 bg-white p-6 sm:p-10 rounded-3xl shadow-2xl relative z-10"
       >
-        <div className="flex flex-col items-center">
-          <h1 className="text-4xl sm:text-5xl font-bold text-indigo-600 mb-2">
-            z<span className="text-yellow-400">o</span>to
-          </h1>
-          <p className="text-center text-base sm:text-lg text-gray-600 max-w-sm">
-            Your one-stop solution for home services.
-          </p>
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={() => navigate("/")}
+        >
+          <motion.h1
+            className="text-4xl sm:text-5xl font-bold text-indigo-600 mb-2 relative"
+            initial="hidden"
+            animate="visible"
+            transition={{ staggerChildren: 0.1 }}
+          >
+            <motion.span variants={letterVariants}>z</motion.span>
+            <motion.span variants={letterVariants} className="text-yellow-400">
+              o
+            </motion.span>
+            <motion.span variants={letterVariants}>t</motion.span>
+            <motion.span variants={letterVariants}>o</motion.span>
+            <motion.div
+              className="absolute -bottom-1 left-0 right-0 h-1 bg-indigo-600"
+              variants={underlineVariants}
+            />
+          </motion.h1>
+          <motion.p
+            className="text-center mt-4 text-base sm:text-lg text-gray-600 max-w-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            Your one stop solution for home services.
+          </motion.p>
         </div>
 
         <div className="flex justify-center space-x-4 sm:space-x-6 my-6 sm:my-8">
@@ -183,10 +214,11 @@ const Login = () => {
       >
         <p className="text-sm text-white">© 2024 Zoto. All rights reserved.</p>
         <Link
-          to="/policies"
-          className="mt-2 inline-block text-sm text-white hover:text-yellow-300 transition duration-300 ease-in-out"
+          to="/terms"
+          className="mt-2 inline-block text-sm font-semibold text-lime-300 hover:text-lime-100 transition duration-300 ease-in-out relative group"
         >
           Privacy Policy & Terms of Service
+          <span className="absolute bottom-0 left-0 w-full h-0.5 bg-lime-300 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-in-out"></span>
         </Link>
       </motion.div>
     </div>

@@ -119,7 +119,7 @@ const DashboardHome: React.FC = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="bg-white p-6 rounded-lg shadow-lg"
+      className=""
     >
       <h2 className="text-3xl font-bold mb-6 text-gray-800">
         Dashboard Overview
@@ -177,7 +177,7 @@ const MetricCard: React.FC<{
   icon: React.ReactNode;
   change: string;
 }> = ({ title, value, icon, change }) => (
-  <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+  <div className="bg-white p-6 rounded-lg shadow-lg">
     <div className="flex items-center justify-between mb-4">
       <h3 className="text-xl font-semibold text-gray-800">{title}</h3>
       {icon}
@@ -189,11 +189,7 @@ const MetricCard: React.FC<{
 
 const ChartWrapper: React.FC<{ children: React.ReactNode }> = ({
   children,
-}) => (
-  <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200 h-64">
-    {children}
-  </div>
-);
+}) => <div className="bg-white p-6 rounded-lg shadow-lg h-64">{children}</div>;
 
 const ServiceCategoryChart: React.FC<{
   categoryBookings: CategoryBooking[];
@@ -277,7 +273,7 @@ const ChartCard: React.FC<{ title: string; children: React.ReactNode }> = ({
 const RecentOrdersTable: React.FC<{ recentOrders: RecentOrder[] }> = ({
   recentOrders,
 }) => (
-  <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+  <div className="p-6 bg-white rounded-lg shadow-lg">
     <h3 className="text-xl font-semibold mb-4 text-gray-800">Recent Orders</h3>
     {recentOrders.length > 0 ? (
       <table className="w-full text-left">
@@ -307,7 +303,7 @@ const RecentOrdersTable: React.FC<{ recentOrders: RecentOrder[] }> = ({
 );
 
 const DashboardSkeleton: React.FC = () => (
-  <div className="bg-white p-6 rounded-lg shadow-lg animate-pulse">
+  <div className="animate-pulse">
     <div className="h-8 bg-gray-300 rounded w-1/4 mb-6"></div>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {[...Array(4)].map((_, index) => (

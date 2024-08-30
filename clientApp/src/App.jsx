@@ -10,6 +10,8 @@ import Login from "./components/Login";
 import Home from "./components/Home";
 import Booking from "./components/Booking";
 import Orders from "./components/Orders";
+import TermsAndConditions from "./components/TermsAndConditions";
+import Blogs from "./components/Blogs";
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
@@ -63,6 +65,8 @@ function App() {
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/terms" element={<TermsAndConditions />} />
+        <Route path="/blogs" element={<Blogs />} />
       </Routes>
     </BrowserRouter>
   );

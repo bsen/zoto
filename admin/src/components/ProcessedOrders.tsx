@@ -90,7 +90,7 @@ const ProcessedOrders: React.FC = () => {
             <thead className="bg-indigo-100">
               <tr>
                 {[...Array(7)].map((_, index) => (
-                  <th key={index} className="px-6 py-3">
+                  <th key={index} className="p-4">
                     <div className="h-4 bg-gray-300 rounded animate-pulse" />
                   </th>
                 ))}
@@ -100,7 +100,7 @@ const ProcessedOrders: React.FC = () => {
               {[...Array(10)].map((_, index) => (
                 <tr key={index}>
                   {[...Array(7)].map((_, cellIndex) => (
-                    <td key={cellIndex} className="px-6 py-4">
+                    <td key={cellIndex} className="p-4">
                       <div className="h-4 bg-gray-300 rounded animate-pulse" />
                     </td>
                   ))}
@@ -117,7 +117,6 @@ const ProcessedOrders: React.FC = () => {
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="text-center text-red-500">
@@ -129,30 +128,30 @@ const ProcessedOrders: React.FC = () => {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Processed Orders</h1>
+      <h1 className="text-3xl font-bold mb-6">Orders</h1>
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-indigo-100">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Order ID
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Customer
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Service
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Date
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Payment Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Amount
               </th>
             </tr>
@@ -160,19 +159,19 @@ const ProcessedOrders: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {orders.map((order) => (
               <tr key={order.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
+                <td className="p-4 whitespace-nowrap text-sm font-medium text-indigo-600">
                   {order.id}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {order.user.name}
+                <td className="p-4 whitespace-nowrap text-sm text-gray-900">
+                  {order.user.name.slice(0, 10)}...
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {order.service.name}
+                <td className="p-4 whitespace-nowrap text-sm text-gray-900">
+                  {order.service.name.slice(0, 10)}...
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="p-4 whitespace-nowrap text-sm text-gray-900">
                   {new Date(order.datetime).toLocaleString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="p-4 whitespace-nowrap">
                   <select
                     value={order.status}
                     onChange={(e) =>
@@ -180,14 +179,13 @@ const ProcessedOrders: React.FC = () => {
                     }
                     className="block w-full bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   >
-                    <option value="PENDING">PENDING</option>
                     <option value="CONFIRMED">CONFIRMED</option>
                     <option value="IN_PROGRESS">IN PROGRESS</option>
                     <option value="COMPLETED">COMPLETED</option>
                     <option value="CANCELLED">CANCELLED</option>
                   </select>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="p-4 whitespace-nowrap">
                   <span
                     className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                       order.paymentStatus === "PAID"
@@ -200,7 +198,7 @@ const ProcessedOrders: React.FC = () => {
                     {order.paymentStatus}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="p-4 whitespace-nowrap text-sm text-gray-900">
                   {order.totalAmount.toFixed(2)}
                 </td>
               </tr>

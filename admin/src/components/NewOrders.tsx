@@ -90,7 +90,7 @@ const NewOrders: React.FC = () => {
             <thead className="bg-indigo-100">
               <tr>
                 {[...Array(7)].map((_, index) => (
-                  <th key={index} className="px-6 py-3">
+                  <th key={index} className="p-4">
                     <div className="h-4 bg-gray-300 rounded animate-pulse" />
                   </th>
                 ))}
@@ -100,7 +100,7 @@ const NewOrders: React.FC = () => {
               {[...Array(10)].map((_, index) => (
                 <tr key={index}>
                   {[...Array(7)].map((_, cellIndex) => (
-                    <td key={cellIndex} className="px-6 py-4">
+                    <td key={cellIndex} className="p-4">
                       <div className="h-4 bg-gray-300 rounded animate-pulse" />
                     </td>
                   ))}
@@ -133,25 +133,25 @@ const NewOrders: React.FC = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-indigo-100">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Order ID
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Customer
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Service
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Date
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Payment Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Amount
               </th>
             </tr>
@@ -159,19 +159,19 @@ const NewOrders: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {orders.map((order) => (
               <tr key={order.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
+                <td className="p-4 whitespace-nowrap text-sm font-medium text-indigo-600">
                   {order.id}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {order.user.name}
+                <td className="p-4 whitespace-nowrap text-sm text-gray-900">
+                  {order.user.name.slice(0, 10)}...
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {order.service.name}
+                <td className="p-4 whitespace-nowrap text-sm text-gray-900">
+                  {order.service.name.slice(0, 10)}...
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="p-4 whitespace-nowrap text-sm text-gray-900">
                   {new Date(order.datetime).toLocaleString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="p-4 whitespace-nowrap">
                   <select
                     value={order.status}
                     onChange={(e) =>
@@ -186,7 +186,7 @@ const NewOrders: React.FC = () => {
                     <option value="CANCELLED">CANCELLED</option>
                   </select>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="p-4 whitespace-nowrap">
                   <span
                     className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                       order.paymentStatus === "PAID"
@@ -199,7 +199,7 @@ const NewOrders: React.FC = () => {
                     {order.paymentStatus}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="p-4 whitespace-nowrap text-sm text-gray-900">
                   {order.totalAmount.toFixed(2)}
                 </td>
               </tr>
