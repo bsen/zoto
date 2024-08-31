@@ -295,6 +295,21 @@ appRouter.post(
         return res.status(400).json({ message: "Name and phone are required" });
       }
 
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (!user.phone) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { phone },
+        });
+      }
+
       const service = await prisma.service.findUnique({
         where: { id: serviceId },
       });

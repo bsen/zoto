@@ -5,6 +5,7 @@ import {
   FaChevronLeft,
   FaChevronRight,
 } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 interface Order {
   id: string;
@@ -64,7 +65,7 @@ const ProcessedOrders: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `https://server.zotoplatforms.com/api/admin/zotoplatforms/panel/orders/${orderId}`,
+        `https://server.zotoplatforms.com/api/admin/zotoplatforms/panel/orders-update/${orderId}`,
         { status: newStatus },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -160,7 +161,12 @@ const ProcessedOrders: React.FC = () => {
             {orders.map((order) => (
               <tr key={order.id}>
                 <td className="p-4 whitespace-nowrap text-sm font-medium text-indigo-600">
-                  {order.id}
+                  <Link
+                    to={`/dashboard/order/${order.id}`}
+                    className="bg-indigo-50 py-1 px-3 rounded-full"
+                  >
+                    {order.id}
+                  </Link>{" "}
                 </td>
                 <td className="p-4 whitespace-nowrap text-sm text-gray-900">
                   {order.user.name.slice(0, 10)}...

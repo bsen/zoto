@@ -79,8 +79,8 @@ adminRouter.get(
           status: PrismaNamespace.BookingStatus.PENDING,
         },
         include: {
-          user: { select: { name: true, email: true } },
-          service: { select: { name: true } },
+          user: { select: { name: true, email: true, phone: true } },
+          service: true,
           address: true,
         },
         orderBy: { createdAt: "desc" },
@@ -126,8 +126,8 @@ adminRouter.get(
           },
         },
         include: {
-          user: { select: { name: true, email: true } },
-          service: { select: { name: true } },
+          user: { select: { name: true, email: true, phone: true } },
+          service: true,
           address: true,
         },
         orderBy: { createdAt: "desc" },
@@ -199,7 +199,13 @@ adminRouter.get(
 
     try {
       const users = await prisma.user.findMany({
-        include: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          profilePicture: true,
+          createdAt: true,
           _count: {
             select: { bookings: true, reviews: true },
           },
@@ -236,18 +242,9 @@ adminRouter.get(
       const user = await prisma.user.findUnique({
         where: { id },
         include: {
-          bookings: {
-            include: {
-              service: { select: { name: true } },
-              address: true,
-            },
-            orderBy: { createdAt: "desc" },
-          },
-          reviews: {
-            include: {
-              service: { select: { name: true } },
-            },
-            orderBy: { createdAt: "desc" },
+          addresses: true,
+          _count: {
+            select: { bookings: true, reviews: true },
           },
         },
       });
@@ -265,8 +262,139 @@ adminRouter.get(
     }
   }
 );
-adminRouter.put(
+
+adminRouter.get(
+  "/users/:id/profile",
+  verifyAdminToken,
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id },
+        include: {
+          addresses: true,
+          _count: {
+            select: { bookings: true, reviews: true },
+          },
+        },
+      });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const bookings = await prisma.booking.findMany({
+        where: { userId: id },
+        include: {
+          service: true,
+          address: true,
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      });
+
+      const totalBookings = await prisma.booking.count({
+        where: { userId: id },
+      });
+
+      const totalPages = Math.ceil(totalBookings / limit);
+
+      res.json({
+        user,
+        bookings,
+        currentPage: page,
+        totalPages,
+        totalBookings,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error fetching user profile",
+        error: (error as Error).message,
+      });
+    }
+  }
+);
+adminRouter.post("/search-users", verifyAdminToken, async (req, res) => {
+  try {
+    const { query } = req.body;
+    if (query === undefined || query === null) {
+      return res.status(400).json({ error: "Search query is required" });
+    }
+
+    const users = await prisma.user.findMany({
+      where: {
+        email: {
+          contains: query,
+          mode: "insensitive",
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        createdAt: true,
+        _count: {
+          select: { bookings: true, reviews: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    });
+
+    res.json({ users });
+  } catch (error) {
+    console.error("Error in user search endpoint:", error);
+    res
+      .status(500)
+      .json({ error: "An unexpected error occurred during search" });
+  }
+});
+adminRouter.get(
   "/orders/:id",
+  verifyAdminToken,
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+      const order = await prisma.booking.findUnique({
+        where: { id },
+        include: {
+          user: { select: { id: true, email: true } },
+          service: true,
+          address: true,
+        },
+      });
+
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      const orderResponse = {
+        ...order,
+        name: order.name,
+        phone: order.phone,
+        user: {
+          id: order.user.id,
+          email: order.user.email,
+        },
+      };
+
+      res.json(orderResponse);
+    } catch (error) {
+      console.error("Error fetching order details:", error);
+      res.status(500).json({
+        message: "Error fetching order details",
+        error: (error as Error).message,
+      });
+    }
+  }
+);
+adminRouter.put(
+  "/orders-update/:id",
   verifyAdminToken,
   async (req: Request, res: Response) => {
     const { id } = req.params;
