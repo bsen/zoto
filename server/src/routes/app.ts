@@ -3,6 +3,8 @@ import { PrismaClient } from "@prisma/client";
 import admin from "firebase-admin";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
+import twilio from "twilio";
+import { format } from "date-fns";
 
 const prisma = new PrismaClient();
 const serviceAccount = require("../../admin.json");
@@ -19,6 +21,29 @@ const authSchema = z.object({
   idToken: z.string(),
   profilePicture: z.string().optional(),
 });
+
+const twilioClient = twilio(
+  "AC9b3a91fd0d3d3587b836c14ee480d694",
+  "a7dbb1ac73b38a8d58375855d66a782a"
+);
+
+async function sendWhatsAppNotification(to: string, body: string) {
+  const formattedNumber = to.startsWith("+") ? to : `+91${to}`;
+  try {
+    const message = await twilioClient.messages.create({
+      body: body,
+      from: "whatsapp:+14155238886",
+      to: `whatsapp:${formattedNumber}`,
+    });
+    await twilioClient.messages(message.sid).fetch();
+  } catch (error) {
+    console.error("Error sending WhatsApp notification:", error);
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error details:", JSON.stringify(error, null, 2));
+    }
+  }
+}
 
 appRouter.post("/auth", async (req, res) => {
   try {
@@ -252,10 +277,22 @@ appRouter.post(
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const { serviceId, address, totalAmount, notes, bookingDate } = req.body;
+      const {
+        serviceId,
+        name,
+        phone,
+        address,
+        totalAmount,
+        notes,
+        bookingDate,
+      } = req.body;
 
       if (!bookingDate) {
         return res.status(400).json({ message: "Booking date is required" });
+      }
+
+      if (!name || !phone) {
+        return res.status(400).json({ message: "Name and phone are required" });
       }
 
       const service = await prisma.service.findUnique({
@@ -295,6 +332,8 @@ appRouter.post(
           userId,
           serviceId,
           addressId: userAddress.id,
+          name,
+          phone,
           datetime: new Date(bookingDate),
           status: "PENDING",
           totalAmount,
@@ -303,10 +342,22 @@ appRouter.post(
         },
       });
 
+      const formattedDateTime = format(
+        new Date(booking.datetime),
+        "MMMM d, yyyy 'at' h:mm a"
+      );
+      const formattedAmount = new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+      }).format(booking.totalAmount);
+
+      const whatsappMessage = `Zoto Platforms: Your booking for ${service.name} has been confirmed for ${formattedDateTime}. Total amount: ${formattedAmount}. Thank you for choosing Zoto Platforms!`;
+      await sendWhatsAppNotification(phone, whatsappMessage);
+
       return res.status(200).json({
         status: 200,
         data: booking,
-        message: "Booking created successfully",
+        message: "Booking created successfully and WhatsApp notification sent",
       });
     } catch (error) {
       console.error("Error creating booking:", error);

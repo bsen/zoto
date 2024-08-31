@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, addHours, setHours, setMinutes, isBefore } from "date-fns";
-import { MapPin, Clock, Loader } from "lucide-react";
+import { Clock } from "lucide-react";
 
 const Booking = () => {
   const { id } = useParams();
@@ -23,7 +23,6 @@ const Booking = () => {
     bookingTime: "12:00",
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [locationLoading, setLocationLoading] = useState(false);
 
   const postcodes = [
     "632001",
@@ -95,6 +94,8 @@ const Booking = () => {
         "https://server.zotoplatforms.com/api/bookings",
         {
           serviceId: id,
+          name: bookingData.name,
+          phone: bookingData.phone,
           address: {
             street: bookingData.street,
             city: bookingData.city,
@@ -117,42 +118,7 @@ const Booking = () => {
       setBooking(false);
     } catch (error) {
       console.error("Error creating booking:", error);
-    }
-  };
-
-  const fetchGeolocation = () => {
-    if (navigator.geolocation) {
-      setLocationLoading(true);
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const { latitude, longitude } = position.coords;
-            const response = await axios.get(
-              `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=YOUR_OPENCAGE_API_KEY`
-            );
-            console.log(response);
-            const address = response.data.results[0].components;
-            setBookingData((prevData) => ({
-              ...prevData,
-              street: address.road || "",
-              city: address.city || "",
-              state: address.state || "",
-              country: address.country || "",
-              zipCode: address.postcode || "",
-            }));
-          } catch (error) {
-            console.error("Error fetching address:", error);
-          } finally {
-            setLocationLoading(false);
-          }
-        },
-        (error) => {
-          console.error("Error getting geolocation:", error);
-          setLocationLoading(false);
-        }
-      );
-    } else {
-      console.error("Geolocation is not supported by this browser.");
+      setBooking(false);
     }
   };
 
@@ -360,18 +326,6 @@ const Booking = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
                     required
                   />
-                  {/* <button
-                    type="button"
-                    onClick={fetchGeolocation}
-                    className="absolute right-2 top-8 text-indigo-600 hover:text-indigo-800"
-                    disabled={locationLoading}
-                  >
-                    {locationLoading ? (
-                      <Loader size={20} className="animate-spin" />
-                    ) : (
-                      <MapPin size={20} />
-                    )}
-                  </button> */}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>

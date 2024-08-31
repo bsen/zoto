@@ -78,6 +78,8 @@ model Booking {
   service       Service       @relation(fields: [serviceId], references: [id])
   addressId     String
   address       Address       @relation(fields: [addressId], references: [id])
+  name          String        
+  phone         String        
   datetime      DateTime
   status        BookingStatus @default(PENDING)
   totalAmount   Float
