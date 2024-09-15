@@ -115,7 +115,6 @@ model Promotion {
   updatedAt          DateTime @updatedAt
 }
 
-// New Vendor model
 model Vendor {
   id             String           @id @default(uuid())
   name           String
@@ -125,6 +124,8 @@ model Vendor {
   profilePicture String?
   address        String
   skills         VendorSkill[]
+  aadhaarNumber  String           @unique
+  panNumber      String           @unique
   isVerified     Boolean          @default(false)
   isAvailable    Boolean          @default(true)
   createdAt      DateTime         @default(now())
@@ -132,7 +133,6 @@ model Vendor {
   serviceAssigned ServiceAssigned[]
 }
 
-// New ServiceAssigned model
 model ServiceAssigned {
   id        String   @id @default(uuid())
   bookingId String   @unique
@@ -159,7 +159,6 @@ enum PaymentStatus {
   REFUNDED
 }
 
-// New enum for Vendor Skills
 enum VendorSkill {
   ELECTRONICS_SERVICE
   HOME_CLEANING
@@ -173,7 +172,6 @@ enum VendorSkill {
   PEST_CONTROL
 }
 
-// New enum for Assignment Status
 enum AssignmentStatus {
   ASSIGNED
   IN_PROGRESS
