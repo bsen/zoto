@@ -8,10 +8,10 @@ datasource db {
 }
 
 model Admin {
-  id             String    @id @default(uuid())
-  username       String    @unique
-  password       String
-  permissions    Json 
+  id          String @id @default(uuid())
+  username    String @unique
+  password    String
+  permissions Json 
 }
 
 model User {
@@ -71,22 +71,23 @@ model Service {
 }
 
 model Booking {
-  id            String        @id @default(uuid())
+  id            String           @id @default(uuid())
   userId        String
-  user          User          @relation(fields: [userId], references: [id])
+  user          User             @relation(fields: [userId], references: [id])
   serviceId     String
-  service       Service       @relation(fields: [serviceId], references: [id])
+  service       Service          @relation(fields: [serviceId], references: [id])
   addressId     String
-  address       Address       @relation(fields: [addressId], references: [id])
+  address       Address          @relation(fields: [addressId], references: [id])
   name          String        
   phone         String        
   datetime      DateTime
-  status        BookingStatus @default(PENDING)
+  status        BookingStatus    @default(PENDING)
   totalAmount   Float
-  paymentStatus PaymentStatus @default(PENDING)
+  paymentStatus PaymentStatus    @default(PENDING)
   notes         String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  serviceAssigned ServiceAssigned?
 }
 
 model Review {
@@ -114,6 +115,35 @@ model Promotion {
   updatedAt          DateTime @updatedAt
 }
 
+// New Vendor model
+model Vendor {
+  id             String           @id @default(uuid())
+  name           String
+  email          String           @unique
+  phone          String
+  password       String
+  profilePicture String?
+  address        String
+  skills         VendorSkill[]
+  isVerified     Boolean          @default(false)
+  isAvailable    Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  serviceAssigned ServiceAssigned[]
+}
+
+// New ServiceAssigned model
+model ServiceAssigned {
+  id        String   @id @default(uuid())
+  bookingId String   @unique
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  vendorId  String
+  vendor    Vendor   @relation(fields: [vendorId], references: [id])
+  status    AssignmentStatus @default(ASSIGNED)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum BookingStatus {
   PENDING
   CONFIRMED
@@ -127,4 +157,26 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
+}
+
+// New enum for Vendor Skills
+enum VendorSkill {
+  ELECTRONICS_SERVICE
+  HOME_CLEANING
+  BATHROOM_CLEANING
+  PLUMBING
+  ELECTRICAL_WORK
+  CARPENTRY
+  PAINTING
+  GARDENING
+  APPLIANCE_REPAIR
+  PEST_CONTROL
+}
+
+// New enum for Assignment Status
+enum AssignmentStatus {
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }
