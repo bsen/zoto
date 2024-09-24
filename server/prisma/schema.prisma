@@ -120,9 +120,9 @@ model Vendor {
   name           String
   email          String           @unique
   phone          String
-  password       String
   profilePicture String?
   address        String
+  pincode        String
   skills         VendorSkill[]
   aadhaarNumber  String           @unique
   panNumber      String           @unique

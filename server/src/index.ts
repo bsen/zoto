@@ -1,6 +1,7 @@
 import express from "express";
-import appRouter from "./routes/app";
+import clientRouter from "./routes/client";
 import adminRouter from "./routes/admin";
+import vendorRouter from "./routes/vendor";
 import cors from "cors";
 import dotenv from "dotenv";
 
@@ -13,7 +14,8 @@ app.get("/", (req, res) => {
   res.status(200).json({ message: "server is live" });
 });
 
-app.use("/api", appRouter);
+app.use("/api", clientRouter);
+app.use("/vendor/api", vendorRouter);
 app.use("/api/admin/zotoplatforms/panel", adminRouter);
 
 const PORT = process.env.PORT || 8080;

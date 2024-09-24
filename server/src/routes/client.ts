@@ -7,12 +7,18 @@ import twilio from "twilio";
 import { format } from "date-fns";
 
 const prisma = new PrismaClient();
-const serviceAccount = require("../../admin.json");
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
 
-const appRouter = express.Router();
+const clientServiceAccount = require("../../client-key.json");
+const clientApp = admin.initializeApp(
+  {
+    credential: admin.credential.cert(clientServiceAccount),
+  },
+  "CLIENT_APP"
+);
+
+const clientAuth = clientApp.auth();
+
+const clientRouter = express.Router();
 
 const authSchema = z.object({
   email: z.string().email(),
@@ -45,13 +51,13 @@ async function sendWhatsAppNotification(to: string, body: string) {
   }
 }
 
-appRouter.post("/auth", async (req, res) => {
+clientRouter.post("/auth", async (req, res) => {
   try {
     const { email, name, phone, idToken, profilePicture } = authSchema.parse(
       req.body
     );
 
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const decodedToken = await clientAuth.verifyIdToken(idToken);
 
     if (decodedToken.email !== email) {
       return res.status(400).json({ message: "Email mismatch" });
@@ -149,7 +155,7 @@ const verifyToken = (
   );
 };
 
-appRouter.get(
+clientRouter.get(
   "/profileUrl",
   verifyToken,
   async (req: AuthRequest, res: express.Response) => {
@@ -182,7 +188,7 @@ appRouter.get(
   }
 );
 
-appRouter.get(
+clientRouter.get(
   "/services",
   async (req: express.Request, res: express.Response) => {
     try {
@@ -214,7 +220,7 @@ interface AuthRequest extends express.Request {
   userId?: string;
 }
 
-appRouter.get(
+clientRouter.get(
   "/services/:id",
   verifyToken,
   async (req: AuthRequest, res: express.Response) => {
@@ -267,7 +273,7 @@ appRouter.get(
   }
 );
 
-appRouter.post(
+clientRouter.post(
   "/bookings",
   verifyToken,
   async (req: AuthRequest, res: express.Response) => {
@@ -381,7 +387,7 @@ appRouter.post(
   }
 );
 
-appRouter.get(
+clientRouter.get(
   "/orders",
   verifyToken,
   async (req: AuthRequest, res: express.Response) => {
@@ -431,7 +437,7 @@ appRouter.get(
   }
 );
 
-appRouter.post(
+clientRouter.post(
   "/bookings/:id/cancel",
   verifyToken,
   async (req: AuthRequest, res: express.Response) => {
@@ -481,4 +487,4 @@ appRouter.post(
   }
 );
 
-export default appRouter;
+export default clientRouter;
