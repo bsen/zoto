@@ -25,9 +25,7 @@ const HomePage = () => {
 
   const fetchServices = async () => {
     try {
-      const response = await axios.get(
-        "https://server.zotoplatforms.com/api/services"
-      );
+      const response = await axios.get("http://localhost:8080/api/services");
       setServices(response.data.data);
       setIsLoading(false);
     } catch (error) {
@@ -40,7 +38,7 @@ const HomePage = () => {
     if (token) {
       try {
         const response = await axios.get(
-          "https://server.zotoplatforms.com/api/profileUrl",
+          "http://localhost:8080/api/profileUrl",
           {
             headers: { Authorization: `Bearer ${token}` },
           }

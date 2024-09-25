@@ -20,7 +20,7 @@ const Orders = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `https://server.zotoplatforms.com/api/orders?page=${currentPage}&limit=5`,
+        `http://localhost:8080/api/orders?page=${currentPage}&limit=5`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -39,7 +39,7 @@ const Orders = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        `https://server.zotoplatforms.com/api/bookings/${orderId}/cancel`,
+        `http://localhost:8080/api/bookings/${orderId}/cancel`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },

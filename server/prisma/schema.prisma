@@ -81,6 +81,7 @@ model Booking {
   name          String        
   phone         String        
   datetime      DateTime
+  otp           String
   status        BookingStatus    @default(PENDING)
   totalAmount   Float
   paymentStatus PaymentStatus    @default(PENDING)

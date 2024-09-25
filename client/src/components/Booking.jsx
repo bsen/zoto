@@ -56,7 +56,7 @@ const Booking = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `https://server.zotoplatforms.com/api/services/${id}`,
+        `http://localhost:8080/api/services/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -91,7 +91,7 @@ const Booking = () => {
       );
       setBooking(true);
       await axios.post(
-        "https://server.zotoplatforms.com/api/bookings",
+        "http://localhost:8080/api/bookings",
         {
           serviceId: id,
           name: bookingData.name,

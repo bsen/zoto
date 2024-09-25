@@ -348,6 +348,8 @@ clientRouter.post(
         });
       }
 
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
       const booking = await prisma.booking.create({
         data: {
           userId,
@@ -360,6 +362,7 @@ clientRouter.post(
           totalAmount,
           paymentStatus: "PENDING",
           notes,
+          otp,
         },
       });
 
@@ -372,7 +375,7 @@ clientRouter.post(
         currency: "INR",
       }).format(booking.totalAmount);
 
-      const whatsappMessage = `Zoto Platforms: Your booking for ${service.name} has been confirmed for ${formattedDateTime}. Total amount: ${formattedAmount}. Thank you for choosing Zoto Platforms!`;
+      const whatsappMessage = `Zoto Platforms: Your booking for ${service.name} has been confirmed for ${formattedDateTime}. Total amount: ${formattedAmount}. Your OTP for order completion is: ${otp}. Please share this with the service provider when they complete the service. Thank you for choosing Zoto Platforms!`;
       await sendWhatsAppNotification(phone, whatsappMessage);
 
       return res.status(200).json({
