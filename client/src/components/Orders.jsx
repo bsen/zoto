@@ -121,6 +121,19 @@ const Orders = () => {
                       <p className="text-gray-600">
                         Total: ₹{order.totalAmount}
                       </p>
+                      <p className="text-gray-600">
+                        OTP: <span className="font-semibold">{order.otp}</span>
+                      </p>
+                      {order.vendorName && (
+                        <div className="mt-2">
+                          <p className="text-indigo-600">
+                            Vendor: {order.vendorName}
+                          </p>
+                          <p className="text-indigo-600">
+                            Vendor Phone: {order.vendorPhone}
+                          </p>
+                        </div>
+                      )}
                       <p className="text-sm text-gray-500 mt-2">
                         Address: {order.address.street}, {order.address.city},{" "}
                         {order.address.state}, {order.address.zipCode}

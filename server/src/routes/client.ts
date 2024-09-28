@@ -414,11 +414,28 @@ clientRouter.get(
             },
           },
           address: true,
+          serviceAssigned: {
+            include: {
+              vendor: {
+                select: {
+                  name: true,
+                  phone: true,
+                },
+              },
+            },
+          },
         },
         orderBy: { datetime: "desc" },
         skip,
         take: limit,
       });
+
+      const formattedOrders = orders.map((order) => ({
+        ...order,
+        otp: order.otp,
+        vendorName: order.serviceAssigned?.vendor.name || "",
+        vendorPhone: order.serviceAssigned?.vendor.phone || "",
+      }));
 
       const totalOrders = await prisma.booking.count({ where: { userId } });
       const totalPages = Math.ceil(totalOrders / limit);
@@ -426,7 +443,7 @@ clientRouter.get(
       return res.status(200).json({
         status: 200,
         data: {
-          orders,
+          orders: formattedOrders,
           currentPage: page,
           totalPages,
           totalOrders,
