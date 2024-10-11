@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,8 +19,7 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [vendorName, setVendorName] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showOtpErrorModal, setShowOtpErrorModal] = useState(false);
   const [loadingOrderIds, setLoadingOrderIds] = useState([]);
   const [showOtpInput, setShowOtpInput] = useState({});
   const navigate = useNavigate();
@@ -47,7 +46,7 @@ const Home = () => {
       setVendorName(response.data.data.name);
     } catch (error) {
       console.error("Error fetching vendor info:", error);
-      setError("Failed to fetch vendor information. Please try again.");
+      setError("Please Refresh Or Try Again Later!");
     }
   };
 
@@ -63,7 +62,7 @@ const Home = () => {
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching pending orders:", error);
-      setError("Failed to fetch pending orders. Please try again.");
+      setError("Please Refresh Or Try Again Later!");
       setIsLoading(false);
     }
   };
@@ -76,11 +75,10 @@ const Home = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log("Accepted orders response:", response);
       setAcceptedOrders(response.data.data);
     } catch (error) {
       console.error("Error fetching accepted orders:", error);
-      setError("Failed to fetch accepted orders. Please try again.");
+      setError("Please Refresh Or Try Again Later!");
     }
   };
 
@@ -98,41 +96,64 @@ const Home = () => {
       await fetchAcceptedOrders();
     } catch (error) {
       console.error("Error accepting order:", error);
-      setError("Failed to accept order. Please try again.");
+      setError("Please Refresh Or Try Again Later!");
     } finally {
       setLoadingOrderIds((prev) => prev.filter((id) => id !== orderId));
     }
   };
 
-  const handleCompleteOrder = async (orderId) => {
-    if (!otp) {
-      setError("Please enter the OTP to complete the order.");
-      return;
-    }
-    setLoadingOrderIds((prev) => [...prev, orderId]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const handleCompleteOrder = async (orderId, otp) => {
     try {
-      await axios.post(
+      if (!otp) {
+        setError("Please enter the OTP to complete the order.");
+        return;
+      }
+      setLoadingOrderIds((prev) => [...prev, orderId]);
+      const response = await axios.post(
         `http://localhost:8080/vendor/api/complete-order/${orderId}`,
         { otp },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setAcceptedOrders(acceptedOrders.filter((order) => order.id !== orderId));
-      setShowOtpInput((prev) => ({ ...prev, [orderId]: false }));
-      setOtp("");
+      if (response.status === 200) {
+        setShowSuccessModal(true);
+        setAcceptedOrders(
+          acceptedOrders.filter((order) => order.id !== orderId)
+        );
+        setShowOtpInput((prev) => ({ ...prev, [orderId]: false }));
+      }
     } catch (error) {
       console.error("Error completing order:", error);
-      setError("Failed to complete order. Please check the OTP and try again.");
+      if (error.response && error.response.status === 409) {
+        setShowOtpErrorModal(true);
+      } else {
+        setError("Please Refresh Or Try Again Later!");
+      }
     } finally {
       setLoadingOrderIds((prev) => prev.filter((id) => id !== orderId));
     }
   };
 
   const OrderCard = ({ order, isAccepted = false }) => {
-    if (!order) {
-      return null;
-    }
+    const [localOtp, setLocalOtp] = useState("");
+    const isOtpValid = localOtp.length === 6;
+    const otpInputRef = useRef(null);
+
+    useEffect(() => {
+      if (showOtpInput[order.id] && otpInputRef.current) {
+        otpInputRef.current.focus();
+      }
+    }, [showOtpInput, order.id]);
+
+    const handleOtpChange = (e) => {
+      const value = e.target.value.replace(/\D/g, "");
+      if (value.length <= 6) {
+        setLocalOtp(value);
+      }
+    };
 
     const formatAddress = (address) => {
       if (typeof address === "string") {
@@ -147,18 +168,22 @@ const Home = () => {
 
     const isLoading = loadingOrderIds.includes(order.id);
 
+    const buttonClass = `w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300 flex items-center justify-center ${
+      isOtpValid ? "opacity-100" : "opacity-50 cursor-not-allowed"
+    }`;
+
     return (
-      <div className="bg-white rounded-lg overflow-hidden shadow-lg relative transform hover:scale-105 transition duration-300 border border-blue-200 mb-4">
+      <div className="bg-white rounded-lg overflow-hidden shadow-lg relative mb-4">
         <div className="p-6">
-          <h4 className="text-xl font-semibold text-blue-700 mb-3">
+          <h4 className="text-xl font-semibold text-indigo-700 mb-3">
             {order.serviceName || order.service?.name || "Unnamed Service"}
           </h4>
           <div className="space-y-3">
-            <div className="flex items-center text-blue-600">
+            <div className="flex items-center text-indigo-600">
               <MapPin size={18} className="mr-3 text-neutral-600" />
               <span>{formatAddress(order.address)}</span>
             </div>
-            <div className="flex items-center text-blue-600">
+            <div className="flex items-center text-indigo-600">
               <Clock size={18} className="mr-3 text-neutral-600" />
               <span>
                 {order.dateTime || order.datetime
@@ -166,11 +191,11 @@ const Home = () => {
                   : "No date available"}
               </span>
             </div>
-            <div className="flex items-center text-blue-600">
+            <div className="flex items-center text-indigo-600">
               <IndianRupee size={18} className="mr-3 text-neutral-600" />
               <span>{order.totalAmount || "Price not available"}</span>
             </div>
-            <div className="flex items-center text-blue-600">
+            <div className="flex items-center text-indigo-600">
               <User size={18} className="mr-3 text-neutral-600" />
               <span>
                 {order.customerName || order.user?.name || "Unknown User"}
@@ -181,7 +206,7 @@ const Home = () => {
             {!isAccepted ? (
               <button
                 onClick={() => handleAcceptOrder(order.id)}
-                className="w-full bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 transition duration-300 shadow-md disabled:opacity-50"
+                className="w-full bg-indigo-600 text-white py-3 rounded-full hover:bg-indigo-700 transition duration-300 shadow-md disabled:opacity-50"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -198,16 +223,17 @@ const Home = () => {
                 {showOtpInput[order.id] ? (
                   <div className="space-y-2">
                     <input
+                      ref={otpInputRef}
                       type="text"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      placeholder="Enter OTP"
-                      className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={localOtp}
+                      onChange={handleOtpChange}
+                      placeholder="Enter 6-digit OTP"
+                      className="w-full px-3 py-2 border border-indigo-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <button
-                      onClick={() => handleCompleteOrder(order.id)}
-                      className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300 disabled:opacity-50 flex items-center justify-center"
-                      disabled={isLoading}
+                      onClick={() => handleCompleteOrder(order.id, localOtp)}
+                      className={buttonClass}
+                      disabled={!isOtpValid || isLoading}
                     >
                       {isLoading ? (
                         <div className="flex items-center justify-center">
@@ -227,7 +253,7 @@ const Home = () => {
                     onClick={() =>
                       setShowOtpInput((prev) => ({ ...prev, [order.id]: true }))
                     }
-                    className="w-full bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 transition duration-300 shadow-md"
+                    className="w-full bg-indigo-600 text-white py-3 rounded-full hover:bg-indigo-700 transition duration-300 shadow-md"
                   >
                     Complete Order
                   </button>
@@ -251,7 +277,7 @@ const Home = () => {
   );
 
   const LoadingSkeleton = () => (
-    <div className="min-h-screen bg-blue-600">
+    <div className="min-h-screen bg-indigo-600">
       <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <div className="flex items-center">
           <h1 className="text-3xl font-bold text-white">
@@ -288,14 +314,25 @@ const Home = () => {
 
   if (error) {
     return (
-      <div className="h-screen bg-blue-600 flex justify-center items-center">
-        <div className="text-white text-2xl">{error}</div>
+      <div className="h-screen bg-indigo-600 flex justify-center items-center">
+        <div className="flex flex-col items-center gap-4 justify-center">
+          <img src="zoto.png" className="h-14 rounded-full border-2" />
+          <div className="text-white text-2xl">{error}</div>
+          <button
+            className="bg-white px-4 py-2 text-indigo-600 font-semibold rounded-full"
+            onClick={() => {
+              window.location.reload();
+            }}
+          >
+            Click to refresh
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-blue-600">
+    <div className="min-h-screen bg-indigo-600">
       <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <div className="flex items-center">
           <h1 className="text-3xl font-bold text-white">
@@ -303,7 +340,7 @@ const Home = () => {
           </h1>
         </div>
         <div
-          className="text-blue-500 font-semibold border border-white px-2 py-0.5 rounded-full bg-white cursor-pointer"
+          className="text-indigo-500 font-semibold border border-white px-2 py-0.5 rounded-full bg-white cursor-pointer"
           onClick={() => setShowModal(true)}
         >
           Welcome, {vendorName}
@@ -316,14 +353,14 @@ const Home = () => {
             <h2 className="text-4xl font-extrabold text-white sm:text-5xl sm:tracking-tight lg:text-6xl">
               Earn Money with Zoto Vendor Platform
             </h2>
-            <p className="mt-5 max-w-xl mx-auto text-xl text-blue-100">
+            <p className="mt-5 max-w-xl mx-auto text-xl text-indigo-100">
               Join our network of skilled professionals and start earning by
               providing top-notch services to customers in your area.
             </p>
             <div className="mt-8">
               <a
                 href="#available-orders"
-                className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-yellow-400 hover:bg-yellow-500"
+                className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-950"
               >
                 View Available Orders
               </a>
@@ -339,8 +376,8 @@ const Home = () => {
               </AnimatePresence>
             </div>
             {pendingOrders.length === 0 && (
-              <div className="text-white text-xl text-center mt-12">
-                No Orders Available
+              <div className="text-white text-xl text-center mt-12 flex justify-center">
+                <img src="box.png" className="h-14" />
               </div>
             )}
           </div>
@@ -351,7 +388,7 @@ const Home = () => {
           <div className="bg-white p-6 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <div className="w-full text-center">
-                <h2 className="text-2xl font-bold text-neutral-600 text-center underline underline-offset-4">
+                <h2 className="text-2xl font-bold text-indigo-950 text-center underline underline-offset-4">
                   Accepted Orders
                 </h2>
               </div>
@@ -367,13 +404,68 @@ const Home = () => {
                 <OrderCard key={order.id} order={order} isAccepted={true} />
               ))
             ) : (
-              <p className="text-blue-600 text-center py-4">
+              <p className="text-indigo-600 text-center py-4">
                 No accepted orders at the moment.
               </p>
             )}
           </div>
         </div>
       )}
+      {showOtpErrorModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-sm w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-indigo-700">
+                Incorrect OTP
+              </h3>
+              <button
+                onClick={() => setShowOtpErrorModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <p className="text-gray-600 mb-4">
+              The OTP you entered is incorrect. Please try again with the
+              correct OTP.
+            </p>
+            <button
+              onClick={() => setShowOtpErrorModal(false)}
+              className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-sm w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-green-600">
+                Order Completed
+              </h3>
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <p className="text-gray-600 mb-4">
+              The order has been successfully completed. Thank you for your
+              service!
+            </p>
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition duration-300"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg animate-fade-in-out">
           {error}

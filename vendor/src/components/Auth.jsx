@@ -75,8 +75,24 @@ const Auth = () => {
     }));
   };
 
+  const setMissingInput = (message) => {
+    setPopup(message);
+    setTimeout(() => {
+      setPopup("");
+    }, 3000);
+  };
+
   const handleSignup = async () => {
     if (isLoading) return;
+    if (!vendorData.name) return setMissingInput("Name is required");
+    if (!vendorData.phone) return setMissingInput("Phone number is required");
+    if (!vendorData.address) return setMissingInput("Address is required");
+    if (!vendorData.pincode) return setMissingInput("Pincode is required");
+    if (vendorData.skills.length === 0)
+      return setMissingInput("At least one skill is required");
+    if (!vendorData.aadhaarNumber)
+      return setMissingInput("Aadhaar number is required");
+    if (!vendorData.panNumber) return setMissingInput("PAN number is required");
 
     try {
       setIsLoading(true);
@@ -96,7 +112,7 @@ const Auth = () => {
       }
     } catch (error) {
       console.error(error);
-      setPopup(
+      setMissingInput(
         error.response?.data?.message || "Network error, try again later"
       );
     } finally {
@@ -136,7 +152,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-blue-600 to-blue-800 relative overflow-y-auto no-scrollbar">
+    <div className="min-h-screen flex flex-col justify-center items-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-indigo-600 to-indigo-800 relative overflow-y-auto no-scrollbar">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(10)].map((_, i) => (
           <div
@@ -160,7 +176,7 @@ const Auth = () => {
           onClick={() => navigate("/")}
         >
           <h1
-            className="text-4xl sm:text-5xl font-bold text-blue-600 mb-2 relative"
+            className="text-4xl sm:text-5xl font-bold text-indigo-600 mb-2 relative"
             initial="hidden"
             animate="visible"
             transition={{ staggerChildren: 0.1 }}
@@ -172,7 +188,7 @@ const Auth = () => {
             <span variants={letterVariants}>t</span>
             <span variants={letterVariants}>o</span>
             <div
-              className="absolute -bottom-1 left-0 right-0 h-1 bg-blue-600"
+              className="absolute -bottom-1 left-0 right-0 h-1 bg-indigo-600"
               variants={underlineVariants}
             />
           </h1>
@@ -196,7 +212,7 @@ const Auth = () => {
             <button
               onClick={handleGoogle}
               disabled={isLoading}
-              className={`w-full flex justify-center items-center py-3 px-4 border border-transparent text-base sm:text-lg font-medium rounded-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg ${
+              className={`w-full flex justify-center items-center py-3 px-4 border border-transparent text-base sm:text-lg font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg ${
                 isLoading ? "opacity-75 cursor-not-allowed" : ""
               }`}
             >
@@ -245,6 +261,13 @@ const Auth = () => {
             )}
           </div>
         )}
+        {popup && (
+          <div className="fixed inset-0 flex items-start justify-center z-50 px-4">
+            <div className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg max-w-md w-full text-center animate-fade-in-up">
+              <p className="text-lg font-semibold">{popup}</p>
+            </div>
+          </div>
+        )}
         {email && isSignupMode && (
           <div
             initial={{ opacity: 0, y: 20 }}
@@ -258,7 +281,7 @@ const Auth = () => {
               value={vendorData.name}
               onChange={handleInputChange}
               placeholder="Full Name"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
               required
             />
             <input
@@ -267,7 +290,7 @@ const Auth = () => {
               value={vendorData.phone}
               onChange={handleInputChange}
               placeholder="Phone Number"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
               required
             />
             <input
@@ -276,14 +299,14 @@ const Auth = () => {
               value={vendorData.address}
               onChange={handleInputChange}
               placeholder="Address"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
               required
             />
             <select
               name="pincode"
               value={vendorData.pincode}
               onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
               required
             >
               <option value="">Select Pincode</option>
@@ -302,7 +325,7 @@ const Auth = () => {
                     onClick={() => handleSkillChange(skill)}
                     className={`px-3 py-1 text-sm rounded-full transition-colors ${
                       vendorData.skills.includes(skill)
-                        ? "bg-blue-600 text-white"
+                        ? "bg-indigo-600 text-white"
                         : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                     }`}
                   >
@@ -318,7 +341,7 @@ const Auth = () => {
               maxLength={12}
               onChange={handleInputChange}
               placeholder="Aadhaar Number"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
               required
             />
             <input
@@ -328,13 +351,13 @@ const Auth = () => {
               maxLength={10}
               onChange={handleInputChange}
               placeholder="PAN Number"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
               required
             />
             <button
               onClick={handleSignup}
               disabled={isLoading}
-              className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               {isLoading ? "Signing Up..." : "Sign Up"}
             </button>
@@ -343,8 +366,11 @@ const Auth = () => {
 
         <div className="text-center">
           <button
-            onClick={() => setIsSignupMode(!isSignupMode)}
-            className="text-lg text-blue-600 hover:text-blue-500"
+            onClick={() => {
+              setIsSignupMode(!isSignupMode);
+              setEmail("");
+            }}
+            className="text-lg text-indigo-600 hover:text-indigo-500"
           >
             {isSignupMode
               ? "Already have an account? Log In"

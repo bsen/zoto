@@ -117,7 +117,6 @@ const Orders = () => {
                       <p className="text-gray-600">
                         Date: {new Date(order.datetime).toLocaleString()}
                       </p>
-                      <p className="text-gray-600">Status: {order.status}</p>
                       <p className="text-gray-600">
                         Total: ₹{order.totalAmount}
                       </p>
@@ -129,11 +128,9 @@ const Orders = () => {
                           <p className="text-indigo-600">
                             Vendor: {order.vendorName}
                           </p>
-                          <p className="text-indigo-600">
-                            Vendor Phone: {order.vendorPhone}
-                          </p>
                         </div>
                       )}
+                      <p className="text-green-600">Status: {order.status}</p>
                       <p className="text-sm text-gray-500 mt-2">
                         Address: {order.address.street}, {order.address.city},{" "}
                         {order.address.state}, {order.address.zipCode}

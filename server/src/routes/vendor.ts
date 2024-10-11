@@ -293,7 +293,6 @@ vendorRouter.get(
         },
         include: {
           address: true,
-          service: true,
           user: {
             select: {
               name: true,
@@ -303,9 +302,14 @@ vendorRouter.get(
         },
       });
 
+      const modifiedOrders = nearbyOrders.map((order) => ({
+        ...order,
+        totalAmount: Math.round(order.totalAmount * 0.75),
+      }));
+
       return res.status(200).json({
         status: 200,
-        data: nearbyOrders,
+        data: modifiedOrders,
         message: "Nearby orders retrieved successfully",
       });
     } catch (error) {
@@ -314,7 +318,6 @@ vendorRouter.get(
     }
   }
 );
-
 vendorRouter.post(
   "/accept-order/:orderId",
   verifyVendorToken,
@@ -461,7 +464,7 @@ vendorRouter.get(
         address: `${order.booking.address.street}, ${order.booking.address.city}, ${order.booking.address.state}, ${order.booking.address.zipCode}`,
         dateTime: order.booking.datetime,
         status: order.status,
-        totalAmount: order.booking.totalAmount,
+        totalAmount: Math.round(order.booking.totalAmount * 0.75),
       }));
 
       return res.status(200).json({
@@ -485,8 +488,11 @@ vendorRouter.post(
   async (req: AuthRequest, res: express.Response) => {
     try {
       const { orderId } = req.params;
+      console.log(orderId);
       const { otp } = req.body;
+      console.log(otp);
       const vendorId = req.vendorId;
+      console.log(vendorId);
 
       if (!vendorId) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -517,7 +523,7 @@ vendorRouter.post(
 
       const providedOtp = parseInt(otp, 10);
       if (booking.otp !== providedOtp.toString()) {
-        return res.status(400).json({ message: "Invalid OTP" });
+        return res.status(409).json({ message: "Invalid OTP" });
       }
 
       const updatedBooking = await prisma.booking.update({
