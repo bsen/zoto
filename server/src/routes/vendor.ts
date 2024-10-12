@@ -293,6 +293,7 @@ vendorRouter.get(
         },
         include: {
           address: true,
+          service: true,
           user: {
             select: {
               name: true,
