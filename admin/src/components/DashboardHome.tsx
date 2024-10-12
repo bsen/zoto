@@ -24,7 +24,8 @@ ChartJS.register(
   Legend
 );
 
-const API_BASE_URL = "http://localhost:8080/api/admin/zotoplatforms/panel";
+const API_BASE_URL =
+  "https://server.zotoplatforms.com/api/admin/zotoplatforms/panel";
 
 interface DashboardData {
   summary: SummaryData;

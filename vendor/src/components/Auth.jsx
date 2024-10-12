@@ -100,7 +100,7 @@ const Auth = () => {
       if (!idToken) throw new Error("No ID token available");
 
       const response = await axios.post(
-        "http://localhost:8080/vendor/api/signup",
+        "https://server.zotoplatforms.com/vendor/api/signup",
         { ...vendorData, email, idToken }
       );
 
@@ -123,7 +123,7 @@ const Auth = () => {
   const authenticateVendor = async (email, idToken) => {
     try {
       const response = await axios.post(
-        "http://localhost:8080/vendor/api/login",
+        "https://server.zotoplatforms.com/vendor/api/login",
         { email, idToken }
       );
 
