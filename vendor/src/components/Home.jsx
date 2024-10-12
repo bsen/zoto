@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -10,6 +10,11 @@ import {
   X,
   Loader,
   Check,
+  FileText,
+  BookOpen,
+  Instagram,
+  Linkedin,
+  Facebook,
 } from "lucide-react";
 
 const Home = () => {
@@ -24,6 +29,11 @@ const Home = () => {
   const [showOtpInput, setShowOtpInput] = useState({});
   const navigate = useNavigate();
   const token = localStorage.getItem("vendorToken");
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/auth");
+  };
 
   useEffect(() => {
     if (!token) {
@@ -336,15 +346,19 @@ const Home = () => {
       <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <div className="flex items-center">
           <h1 className="text-3xl font-bold text-white">
-            z<span className="text-yellow-400">o</span>to
+            z<span className="text-yellow-400">o</span>to.V
           </h1>
         </div>
-        <div
-          className="text-indigo-500 font-semibold border border-white px-2 py-0.5 rounded-full bg-white cursor-pointer"
-          onClick={() => setShowModal(true)}
-        >
-          Welcome, {vendorName}
-        </div>
+        {vendorName ? (
+          <div
+            className="text-indigo-500 font-semibold border border-white px-2 py-0.5 rounded-full bg-white cursor-pointer"
+            onClick={() => setShowModal(true)}
+          >
+            {vendorName}
+          </div>
+        ) : (
+          <div></div>
+        )}
       </div>
 
       <main>
@@ -382,7 +396,106 @@ const Home = () => {
             )}
           </div>
         </div>
+        <footer className="bg-indigo-600 text-white mt-16 py-12 border-t border-indigo-500">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              <div>
+                <h3 className="text-xl font-bold mb-4">About Zoto</h3>
+                <p className="text-sm">
+                  Zoto Platforms is a leading service company dedicated to
+                  making your life easier. We provide a wide range of home and
+                  vehicle maintenance services including room cleaning, bathroom
+                  sanitization, kitchen cleaning, AC servicing, washing machine
+                  repairs, and bike/car repairs. Our mission is to transform
+                  your daily living experience with our professional and
+                  reliable services.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-4">Our Services</h3>
+                <ul className="space-y-2 text-sm">
+                  <li>Home Cleaning</li>
+                  <li>Bathroom Sanitization</li>
+                  <li>Kitchen Cleaning</li>
+                  <li>AC Servicing</li>
+                  <li>Washing Machine Repairs</li>
+                  <li>Bike & Car Repairs</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-4">Quick Links</h3>
+                <ul className="space-y-2 text-sm">
+                  <li>
+                    <Link
+                      to="/terms"
+                      className="flex items-center text-yellow-300 hover:text-yellow-100 transition duration-300 group"
+                    >
+                      <FileText size={18} className="mr-2" />
+                      Terms & Conditions
+                      <span className="ml-1 block max-w-0 group-hover:max-w-full transition-all duration-500 h-0.5 bg-yellow-300"></span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/blogs"
+                      className="flex items-center text-yellow-300 hover:text-yellow-100 transition duration-300 group"
+                    >
+                      <BookOpen size={18} className="mr-2" />
+                      Blogs
+                      <span className="ml-1 block max-w-0 group-hover:max-w-full transition-all duration-500 h-0.5 bg-yellow-300"></span>
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+              <div className="flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xl font-bold mb-4">Connect With Us</h3>
+                  <div className="flex space-x-4">
+                    <a
+                      href="https://www.instagram.com/zotoplatforms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-indigo-200 transition-colors"
+                    >
+                      <Instagram size={24} />
+                    </a>
+                    <a
+                      href="https://www.linkedin.com/company/zoto-platforms-pvt-ltd/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-indigo-200 transition-colors"
+                    >
+                      <Linkedin size={24} />
+                    </a>
+                    <a
+                      href="https://www.facebook.com/share/oEbxBC6edDx7HHbh/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-indigo-200 transition-colors"
+                    >
+                      <Facebook size={24} />
+                    </a>
+                  </div>
+                </div>
+
+                {token && (
+                  <button
+                    onClick={handleLogout}
+                    className="bg-rose-100 w-fit text-rose-600 mt-6 px-7 py-2 rounded-full hover:bg-rose-200 transition duration-300"
+                  >
+                    Logout
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <p className="mt-8 text-center text-sm">
+              &copy; 2024 Zoto Platforms. All rights reserved.
+            </p>
+          </div>
+        </footer>
       </main>
+
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">

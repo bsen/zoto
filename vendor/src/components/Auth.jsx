@@ -187,6 +187,7 @@ const Auth = () => {
             </span>
             <span variants={letterVariants}>t</span>
             <span variants={letterVariants}>o</span>
+            <span> for vendors</span>
             <div
               className="absolute -bottom-1 left-0 right-0 h-1 bg-indigo-600"
               variants={underlineVariants}
