@@ -10,8 +10,9 @@ import {
   FaMapMarkerAlt,
   FaIdCard,
   FaCheckCircle,
-  FaTimesCircle,
   FaWhatsapp,
+  FaEdit,
+  FaSave,
 } from "react-icons/fa";
 
 interface ServiceAssigned {
@@ -40,7 +41,6 @@ interface VendorProfile {
   aadhaarNumber: string;
   panNumber: string;
   isVerified: boolean;
-  isAvailable: boolean;
   createdAt: string;
 }
 
@@ -57,6 +57,8 @@ const VendorProfile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedVendor, setEditedVendor] = useState<VendorProfile | null>(null);
   const { vendorId } = useParams<{ vendorId: string }>();
   const navigate = useNavigate();
 
@@ -70,12 +72,13 @@ const VendorProfile: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get<ProfileResponse>(
-        `http://localhost:8080/api/admin/zotoplatforms/panel/vendors/${vendorId}/profile?page=${page}&limit=10`,
+        `https://server.zotoplatforms.com/api/admin/zotoplatforms/panel/vendors/${vendorId}/profile?page=${page}&limit=10`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
       setProfileData(response.data);
+      setEditedVendor(response.data.vendor);
     } catch (err) {
       setError("Failed to fetch vendor profile. Please try again.");
       console.error("Error fetching vendor profile:", err);
@@ -99,6 +102,60 @@ const VendorProfile: React.FC = () => {
       `https://wa.me/${cleanPhoneNumber}?text=${encodedMessage}`,
       "_blank"
     );
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    if (!editedVendor) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `https://server.zotoplatforms.com/api/admin/zotoplatforms/panel/vendors/${vendorId}`,
+        editedVendor,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setIsEditing(false);
+      fetchVendorProfile(currentPage);
+    } catch (err) {
+      console.error("Error updating vendor profile:", err);
+      setError("Failed to update vendor profile. Please try again.");
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (editedVendor) {
+      setEditedVendor({
+        ...editedVendor,
+        [e.target.name]: e.target.value,
+      });
+    }
+  };
+
+  const handleVerificationToggle = async () => {
+    if (!editedVendor) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `https://server.zotoplatforms.com/api/admin/zotoplatforms/panel/vendors/${vendorId}/verify`,
+        { isVerified: !editedVendor.isVerified },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      fetchVendorProfile(currentPage);
+    } catch (err) {
+      console.error("Error toggling vendor verification:", err);
+      setError(
+        "Failed to update vendor verification status. Please try again."
+      );
+    }
   };
 
   if (loading) {
@@ -166,7 +223,7 @@ const VendorProfile: React.FC = () => {
     );
   }
 
-  if (!profileData) {
+  if (!profileData || !editedVendor) {
     return <div className="text-center">No vendor profile found.</div>;
   }
 
@@ -183,23 +240,44 @@ const VendorProfile: React.FC = () => {
       </button>
       <h1 className="text-3xl font-bold mb-6">Vendor Profile</h1>
       <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
-        <div className="px-4 py-5 sm:px-6 flex items-center">
-          {vendor.profilePicture ? (
-            <img
-              src={vendor.profilePicture}
-              alt={vendor.name}
-              className="w-16 h-16 rounded-full mr-4"
-            />
-          ) : (
-            <FaUser className="w-16 h-16 text-gray-400 mr-4" />
-          )}
+        <div className="px-4 py-5 sm:px-6 flex items-center justify-between">
+          <div className="flex items-center">
+            {vendor.profilePicture ? (
+              <img
+                src={vendor.profilePicture}
+                alt={vendor.name}
+                className="w-16 h-16 rounded-full mr-4"
+              />
+            ) : (
+              <FaUser className="w-16 h-16 text-gray-400 mr-4" />
+            )}
+            <div>
+              <h2 className="text-2xl leading-6 font-medium text-gray-900">
+                {vendor.name}
+              </h2>
+              <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                Vendor ID: {vendor.id}
+              </p>
+            </div>
+          </div>
           <div>
-            <h2 className="text-2xl leading-6 font-medium text-gray-900">
-              {vendor.name}
-            </h2>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
-              Vendor ID: {vendor.id}
-            </p>
+            {isEditing ? (
+              <button
+                onClick={handleSave}
+                className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                <FaSave className="mr-2" />
+                Save
+              </button>
+            ) : (
+              <button
+                onClick={handleEdit}
+                className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                <FaEdit className="mr-2" />
+                Edit
+              </button>
+            )}
           </div>
         </div>
         <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
@@ -209,7 +287,17 @@ const VendorProfile: React.FC = () => {
                 <FaEnvelope className="mr-2" /> Email
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {vendor.email}
+                {isEditing ? (
+                  <input
+                    type="email"
+                    name="email"
+                    value={editedVendor.email}
+                    onChange={handleInputChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                ) : (
+                  vendor.email
+                )}
               </dd>
             </div>
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -217,14 +305,26 @@ const VendorProfile: React.FC = () => {
                 <FaPhone className="mr-2" /> Phone
               </dt>
               <dd className="mt-1 text-sm sm:mt-0 sm:col-span-2 flex items-center">
-                {vendor.phone}
-                <button
-                  onClick={() => openWhatsApp(vendor.phone, vendor.name)}
-                  className="ml-2 text-green-600 hover:text-green-800"
-                  title="Open WhatsApp chat"
-                >
-                  <FaWhatsapp size={20} />
-                </button>
+                {isEditing ? (
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={editedVendor.phone}
+                    onChange={handleInputChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                ) : (
+                  <>
+                    {vendor.phone}
+                    <button
+                      onClick={() => openWhatsApp(vendor.phone, vendor.name)}
+                      className="ml-2 text-green-600 hover:text-green-800"
+                      title="Open WhatsApp chat"
+                    >
+                      <FaWhatsapp size={20} />
+                    </button>
+                  </>
+                )}
               </dd>
             </div>
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -232,7 +332,26 @@ const VendorProfile: React.FC = () => {
                 <FaMapMarkerAlt className="mr-2" /> Address
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {vendor.address}, {vendor.pincode}
+                {isEditing ? (
+                  <>
+                    <input
+                      type="text"
+                      name="address"
+                      value={editedVendor.address}
+                      onChange={handleInputChange}
+                      className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md mb-2"
+                    />
+                    <input
+                      type="text"
+                      name="pincode"
+                      value={editedVendor.pincode}
+                      onChange={handleInputChange}
+                      className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    />
+                  </>
+                ) : (
+                  `${vendor.address}, ${vendor.pincode}`
+                )}
               </dd>
             </div>
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -240,7 +359,17 @@ const VendorProfile: React.FC = () => {
                 <FaIdCard className="mr-2" /> Aadhaar Number
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {vendor.aadhaarNumber}
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="aadhaarNumber"
+                    value={editedVendor.aadhaarNumber}
+                    onChange={handleInputChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                ) : (
+                  vendor.aadhaarNumber
+                )}
               </dd>
             </div>
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -248,7 +377,17 @@ const VendorProfile: React.FC = () => {
                 <FaIdCard className="mr-2" /> PAN Number
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {vendor.panNumber}
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="panNumber"
+                    value={editedVendor.panNumber}
+                    onChange={handleInputChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                ) : (
+                  vendor.panNumber
+                )}
               </dd>
             </div>
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -263,19 +402,24 @@ const VendorProfile: React.FC = () => {
                 )}
               </dd>
             </div>
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500 flex items-center">
-                <FaCheckCircle className="mr-2" /> Availability
-              </dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {vendor.isAvailable ? (
-                  <span className="text-green-600">Available</span>
-                ) : (
-                  <span className="text-red-600">Not Available</span>
-                )}
-              </dd>
-            </div>
           </dl>
+        </div>
+      </div>
+
+      <div className="mt-8 mb-8">
+        <h2 className="text-2xl font-bold mb-4">Actions</h2>
+        <div className="flex space-x-4">
+          <button
+            onClick={handleVerificationToggle}
+            className={`px-4 py-2 ${
+              vendor.isVerified
+                ? "bg-red-500 hover:bg-red-600"
+                : "bg-green-500 hover:bg-green-600"
+            } text-white
+} text-white rounded transition duration-300`}
+          >
+            {vendor.isVerified ? "Revoke Verification" : "Verify Vendor"}
+          </button>
         </div>
       </div>
 
@@ -362,47 +506,6 @@ const VendorProfile: React.FC = () => {
           </button>
         </div>
       )}
-
-      <div className="mt-8">
-        <h2 className="text-2xl font-bold mb-4">Actions</h2>
-        <div className="flex space-x-4">
-          <button
-            onClick={() => {
-              // Implement edit functionality
-              console.log("Edit vendor profile");
-            }}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300"
-          >
-            Edit Profile
-          </button>
-          <button
-            onClick={() => {
-              // Implement toggle verification status
-              console.log("Toggle verification status");
-            }}
-            className={`px-4 py-2 ${
-              vendor.isVerified
-                ? "bg-red-500 hover:bg-red-600"
-                : "bg-green-500 hover:bg-green-600"
-            } text-white rounded transition duration-300`}
-          >
-            {vendor.isVerified ? "Revoke Verification" : "Verify Vendor"}
-          </button>
-          <button
-            onClick={() => {
-              // Implement toggle availability status
-              console.log("Toggle availability status");
-            }}
-            className={`px-4 py-2 ${
-              vendor.isAvailable
-                ? "bg-yellow-500 hover:bg-yellow-600"
-                : "bg-green-500 hover:bg-green-600"
-            } text-white rounded transition duration-300`}
-          >
-            {vendor.isAvailable ? "Set Unavailable" : "Set Available"}
-          </button>
-        </div>
-      </div>
     </div>
   );
 };

@@ -12,8 +12,8 @@ interface Order {
   userId: string;
   serviceId: string;
   datetime: string;
-  status: "PENDING" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
-  paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+  status: "ACCEPTED" | "COMPLETED" | "CANCELLED";
+  paymentStatus: "PENDING" | "PAID" | "REFUNDED";
   totalAmount: number;
   user: {
     name: string;
@@ -27,6 +27,12 @@ interface Order {
     city: string;
     state: string;
   };
+  vendor: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+  } | null;
 }
 
 const ProcessedOrders: React.FC = () => {
@@ -90,7 +96,7 @@ const ProcessedOrders: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-indigo-100">
               <tr>
-                {[...Array(7)].map((_, index) => (
+                {[...Array(8)].map((_, index) => (
                   <th key={index} className="p-4">
                     <div className="h-4 bg-gray-300 rounded animate-pulse" />
                   </th>
@@ -100,7 +106,7 @@ const ProcessedOrders: React.FC = () => {
             <tbody>
               {[...Array(10)].map((_, index) => (
                 <tr key={index}>
-                  {[...Array(7)].map((_, cellIndex) => (
+                  {[...Array(8)].map((_, cellIndex) => (
                     <td key={cellIndex} className="p-4">
                       <div className="h-4 bg-gray-300 rounded animate-pulse" />
                     </td>
@@ -129,7 +135,7 @@ const ProcessedOrders: React.FC = () => {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Orders</h1>
+      <h1 className="text-3xl font-bold mb-6">Processed Orders</h1>
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-indigo-100">
@@ -154,6 +160,9 @@ const ProcessedOrders: React.FC = () => {
               </th>
               <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Amount
+              </th>
+              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Vendor
               </th>
             </tr>
           </thead>
@@ -185,8 +194,7 @@ const ProcessedOrders: React.FC = () => {
                     }
                     className="block w-full bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   >
-                    <option value="CONFIRMED">CONFIRMED</option>
-                    <option value="IN_PROGRESS">IN PROGRESS</option>
+                    <option value="ACCEPTED">ACCEPTED</option>
                     <option value="COMPLETED">COMPLETED</option>
                     <option value="CANCELLED">CANCELLED</option>
                   </select>
@@ -206,6 +214,18 @@ const ProcessedOrders: React.FC = () => {
                 </td>
                 <td className="p-4 whitespace-nowrap text-sm text-gray-900">
                   {order.totalAmount.toFixed(2)}
+                </td>
+                <td className="p-4 whitespace-nowrap text-sm text-gray-900">
+                  {order.vendor ? (
+                    <Link
+                      to={`/dashboard/vendor/${order.vendor.id}`}
+                      className="text-indigo-600 hover:text-indigo-900"
+                    >
+                      {order.vendor.name}
+                    </Link>
+                  ) : (
+                    "Not assigned"
+                  )}
                 </td>
               </tr>
             ))}

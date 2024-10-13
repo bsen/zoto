@@ -1,5 +1,10 @@
 import express from "express";
-import { AssignmentStatus, BookingStatus, PrismaClient } from "@prisma/client";
+import {
+  AssignmentStatus,
+  BookingStatus,
+  PaymentStatus,
+  PrismaClient,
+} from "@prisma/client";
 import admin from "firebase-admin";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
@@ -382,7 +387,7 @@ vendorRouter.post(
             },
           },
           status: {
-            in: ["ASSIGNED", "IN_PROGRESS"],
+            in: ["ASSIGNED"],
           },
         },
       });
@@ -405,7 +410,7 @@ vendorRouter.post(
 
       await prisma.booking.update({
         where: { id: orderId },
-        data: { status: "CONFIRMED" },
+        data: { status: "ACCEPTED" },
       });
 
       return res.status(200).json({
@@ -435,7 +440,7 @@ vendorRouter.get(
         where: {
           vendorId: vendorId,
           status: {
-            in: [AssignmentStatus.ASSIGNED, AssignmentStatus.IN_PROGRESS],
+            in: [AssignmentStatus.ASSIGNED],
           },
         },
         include: {
@@ -531,6 +536,7 @@ vendorRouter.post(
         where: { id: orderId },
         data: {
           status: BookingStatus.COMPLETED,
+          paymentStatus: PaymentStatus.PAID,
           serviceAssigned: {
             update: {
               status: AssignmentStatus.COMPLETED,

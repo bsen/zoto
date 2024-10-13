@@ -16,7 +16,6 @@ interface Vendor {
   email: string;
   phone: string;
   isVerified: boolean;
-  isAvailable: boolean;
   createdAt: string;
   _count: {
     serviceAssigned: number;
@@ -49,7 +48,7 @@ const Vendors: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:8080/api/admin/zotoplatforms/panel/vendors?page=${currentPage}&limit=10`,
+        `https://server.zotoplatforms.com/api/admin/zotoplatforms/panel/vendors?page=${currentPage}&limit=10`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -70,7 +69,7 @@ const Vendors: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:8080/api/admin/zotoplatforms/panel/search-vendors",
+        "https://server.zotoplatforms.com/api/admin/zotoplatforms/panel/search-vendors",
         { query: searchQuery },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -176,13 +175,6 @@ const Vendors: React.FC = () => {
               </td>
               <td className="p-4 whitespace-nowrap text-sm text-gray-900">
                 {vendor.isVerified ? (
-                  <FaCheckCircle className="text-green-500" />
-                ) : (
-                  <FaTimesCircle className="text-red-500" />
-                )}
-              </td>
-              <td className="p-4 whitespace-nowrap text-sm text-gray-900">
-                {vendor.isAvailable ? (
                   <FaCheckCircle className="text-green-500" />
                 ) : (
                   <FaTimesCircle className="text-red-500" />

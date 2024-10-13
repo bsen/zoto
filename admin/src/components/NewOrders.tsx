@@ -12,7 +12,6 @@ interface Order {
   userId: string;
   serviceId: string;
   datetime: string;
-  status: "PENDING" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
   paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
   totalAmount: number;
   user: {
@@ -58,23 +57,6 @@ const NewOrders: React.FC = () => {
       console.error("Error fetching orders:", err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleStatusChange = async (orderId: string, newStatus: string) => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.put(
-        `https://server.zotoplatforms.com/api/admin/zotoplatforms/panel/orders-update/${orderId}`,
-        { status: newStatus },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      fetchOrders();
-    } catch (err) {
-      console.error("Error updating order status:", err);
-      setError("Failed to update order status. Please try again.");
     }
   };
 
@@ -147,9 +129,6 @@ const NewOrders: React.FC = () => {
                 Date
               </th>
               <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Payment Status
               </th>
               <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -176,21 +155,6 @@ const NewOrders: React.FC = () => {
                 </td>
                 <td className="p-4 whitespace-nowrap text-sm text-gray-900">
                   {new Date(order.datetime).toLocaleString()}
-                </td>
-                <td className="p-4 whitespace-nowrap">
-                  <select
-                    value={order.status}
-                    onChange={(e) =>
-                      handleStatusChange(order.id, e.target.value)
-                    }
-                    className="block w-full bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  >
-                    <option value="PENDING">PENDING</option>
-                    <option value="CONFIRMED">CONFIRMED</option>
-                    <option value="IN_PROGRESS">IN PROGRESS</option>
-                    <option value="COMPLETED">COMPLETED</option>
-                    <option value="CANCELLED">CANCELLED</option>
-                  </select>
                 </td>
                 <td className="p-4 whitespace-nowrap">
                   <span

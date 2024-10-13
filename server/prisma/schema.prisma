@@ -147,8 +147,7 @@ model ServiceAssigned {
 
 enum BookingStatus {
   PENDING
-  CONFIRMED
-  IN_PROGRESS
+  ACCEPTED
   COMPLETED
   CANCELLED
 }
@@ -156,7 +155,6 @@ enum BookingStatus {
 enum PaymentStatus {
   PENDING
   PAID
-  FAILED
   REFUNDED
 }
 
@@ -175,7 +173,6 @@ enum VendorSkill {
 
 enum AssignmentStatus {
   ASSIGNED
-  IN_PROGRESS
   COMPLETED
   CANCELLED
 }

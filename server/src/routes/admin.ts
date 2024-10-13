@@ -129,6 +129,18 @@ adminRouter.get(
           user: { select: { name: true, email: true, phone: true } },
           service: true,
           address: true,
+          serviceAssigned: {
+            include: {
+              vendor: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  phone: true,
+                },
+              },
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
         skip,
@@ -172,8 +184,16 @@ adminRouter.get(
         acc[curr.status] = curr._count;
         return acc;
       }, {} as Record<string, number>);
+
+      // Reshape the orders to include vendor information directly
+      const processedOrders = orders.map((order) => ({
+        ...order,
+        vendor: order.serviceAssigned?.vendor || null,
+        serviceAssigned: undefined, // Remove the serviceAssigned field
+      }));
+
       res.json({
-        orders,
+        orders: processedOrders,
         currentPage: page,
         totalPages,
         totalOrders,
@@ -785,6 +805,60 @@ adminRouter.get(
         message: "Error fetching vendor profile and orders",
         error: (error as Error).message,
       });
+    }
+  }
+);
+
+adminRouter.put(
+  "/vendors/:vendorId",
+  verifyAdminToken,
+  async (req: Request, res: Response) => {
+    const { vendorId } = req.params;
+    const { name, email, phone, address, pincode, aadhaarNumber, panNumber } =
+      req.body;
+
+    try {
+      const updatedVendor = await prisma.vendor.update({
+        where: { id: vendorId },
+        data: {
+          name,
+          email,
+          phone,
+          address,
+          pincode,
+          aadhaarNumber,
+          panNumber,
+        },
+      });
+
+      res.json(updatedVendor);
+    } catch (error) {
+      console.error("Error updating vendor profile:", error);
+      res.status(500).json({ message: "Error updating vendor profile" });
+    }
+  }
+);
+
+// Toggle vendor verification status
+adminRouter.put(
+  "/vendors/:vendorId/verify",
+  verifyAdminToken,
+  async (req: Request, res: Response) => {
+    const { vendorId } = req.params;
+    const { isVerified } = req.body;
+
+    try {
+      const updatedVendor = await prisma.vendor.update({
+        where: { id: vendorId },
+        data: { isVerified },
+      });
+
+      res.json(updatedVendor);
+    } catch (error) {
+      console.error("Error updating vendor verification status:", error);
+      res
+        .status(500)
+        .json({ message: "Error updating vendor verification status" });
     }
   }
 );

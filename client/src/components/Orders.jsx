@@ -120,9 +120,8 @@ const Orders = () => {
                       <p className="text-gray-600">
                         Total: ₹{order.totalAmount}
                       </p>
-                      <p className="text-gray-600">
-                        OTP: <span className="font-semibold">{order.otp}</span>
-                      </p>
+                      <p className="text-gray-600">Status: {order.status}</p>
+
                       {order.vendorName && (
                         <div className="mt-2">
                           <p className="text-indigo-600">
@@ -130,7 +129,12 @@ const Orders = () => {
                           </p>
                         </div>
                       )}
-                      <p className="text-green-600">Status: {order.status}</p>
+                      <p className="text-gray-600">
+                        OTP:{" "}
+                        <span className="font-semibold text-orange-500">
+                          {order.otp}
+                        </span>
+                      </p>
                       <p className="text-sm text-gray-500 mt-2">
                         Address: {order.address.street}, {order.address.city},{" "}
                         {order.address.state}, {order.address.zipCode}
