@@ -146,9 +146,6 @@ const Vendors: React.FC = () => {
               Verified
             </th>
             <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Available
-            </th>
-            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Joined
             </th>
             <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
