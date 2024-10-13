@@ -14,6 +14,8 @@ import Customers from "./components/Customers";
 import ProcessedOrders from "./components/ProcessedOrders";
 import OrderDetails from "./components/OrderDetails";
 import CustomerProfile from "./components/CustomerProfile";
+import Vendors from "./components/Vendors";
+import VendorProfile from "./components/VendorsProfile";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -73,6 +75,11 @@ function App() {
           <Route
             path="dashboard/customer/:userId"
             element={<CustomerProfile />}
+          />
+          <Route path="dashboard/vendors" element={<Vendors />} />
+          <Route
+            path="dashboard/vendor/:vendorId"
+            element={<VendorProfile />}
           />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

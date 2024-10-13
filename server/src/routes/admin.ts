@@ -569,4 +569,224 @@ adminRouter.get(
   }
 );
 
+adminRouter.get("/vendors", async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const skip = (page - 1) * limit;
+
+  try {
+    const vendors = await prisma.vendor.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        isVerified: true,
+        isAvailable: true,
+        createdAt: true,
+        _count: {
+          select: { serviceAssigned: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    });
+
+    const totalVendors = await prisma.vendor.count();
+    const totalPages = Math.ceil(totalVendors / limit);
+
+    res.json({
+      vendors,
+      currentPage: page,
+      totalPages,
+      totalVendors,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching vendors",
+      error: (error as Error).message,
+    });
+  }
+});
+
+// Get vendor profile
+adminRouter.get("/vendors/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const vendor = await prisma.vendor.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: { serviceAssigned: true },
+        },
+      },
+    });
+
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    res.json(vendor);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching vendor details",
+      error: (error as Error).message,
+    });
+  }
+});
+
+// Get vendor orders
+adminRouter.get("/vendors/:id/orders", async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const skip = (page - 1) * limit;
+
+  try {
+    const orders = await prisma.serviceAssigned.findMany({
+      where: { vendorId: id },
+      include: {
+        booking: {
+          include: {
+            service: true,
+            address: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    });
+
+    const totalOrders = await prisma.serviceAssigned.count({
+      where: { vendorId: id },
+    });
+
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    res.json({
+      orders,
+      currentPage: page,
+      totalPages,
+      totalOrders,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching vendor orders",
+      error: (error as Error).message,
+    });
+  }
+});
+
+// Search vendors
+adminRouter.post("/search-vendors", async (req, res) => {
+  try {
+    const { query } = req.body;
+    if (query === undefined || query === null) {
+      return res.status(400).json({ error: "Search query is required" });
+    }
+
+    const vendors = await prisma.vendor.findMany({
+      where: {
+        OR: [
+          { name: { contains: query, mode: "insensitive" } },
+          { email: { contains: query, mode: "insensitive" } },
+          { phone: { contains: query, mode: "insensitive" } },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        isVerified: true,
+        isAvailable: true,
+        createdAt: true,
+        _count: {
+          select: { serviceAssigned: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    });
+
+    res.json({ vendors });
+  } catch (error) {
+    console.error("Error in vendor search endpoint:", error);
+    res
+      .status(500)
+      .json({ error: "An unexpected error occurred during search" });
+  }
+});
+// Update this route in your adminRouter
+adminRouter.get(
+  "/vendors/:vendorId/profile",
+  async (req: Request, res: Response) => {
+    const { vendorId } = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    try {
+      const vendor = await prisma.vendor.findUnique({
+        where: { id: vendorId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          profilePicture: true,
+          address: true,
+          pincode: true,
+          aadhaarNumber: true,
+          panNumber: true,
+          isVerified: true,
+          isAvailable: true,
+          createdAt: true,
+        },
+      });
+
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+
+      const orders = await prisma.serviceAssigned.findMany({
+        where: { vendorId: vendorId },
+        include: {
+          booking: {
+            include: {
+              service: true,
+              address: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      });
+
+      const totalOrders = await prisma.serviceAssigned.count({
+        where: { vendorId: vendorId },
+      });
+
+      const totalPages = Math.ceil(totalOrders / limit);
+
+      res.json({
+        vendor,
+        orders,
+        currentPage: page,
+        totalPages,
+        totalOrders,
+      });
+    } catch (error) {
+      console.error("Error fetching vendor profile:", error);
+      res.status(500).json({
+        message: "Error fetching vendor profile and orders",
+        error: (error as Error).message,
+      });
+    }
+  }
+);
+
 export default adminRouter;

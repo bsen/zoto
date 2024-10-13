@@ -6,6 +6,7 @@ import {
   FaUsers,
   FaSignOutAlt,
   FaClipboardCheck,
+  FaToolbox,
 } from "react-icons/fa";
 
 const Sidebar: React.FC = () => {
@@ -30,6 +31,7 @@ const Sidebar: React.FC = () => {
       text: "Processed Orders",
     },
     { path: "/dashboard/customers", icon: FaUsers, text: "Customers" },
+    { path: "/dashboard/vendors", icon: FaToolbox, text: "Vendors" },
   ];
 
   return (
