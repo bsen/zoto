@@ -566,7 +566,7 @@ const Home = () => {
               </button>
             </div>
             <p className="text-gray-600 mb-4">
-              The order has been successfully completed. Thank you for your
+              Your order has been successfully completed. Thank you for your
               service!
             </p>
             <button
