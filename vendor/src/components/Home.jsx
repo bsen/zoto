@@ -27,6 +27,8 @@ const Home = () => {
   const [showOtpErrorModal, setShowOtpErrorModal] = useState(false);
   const [loadingOrderIds, setLoadingOrderIds] = useState([]);
   const [showOtpInput, setShowOtpInput] = useState({});
+  const [isVerified, setIsVerified] = useState(true);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
   const navigate = useNavigate();
   const token = localStorage.getItem("vendorToken");
 
@@ -54,6 +56,7 @@ const Home = () => {
         }
       );
       setVendorName(response.data.data.name);
+      setIsVerified(response.data.data.isVerified);
     } catch (error) {
       console.error("Error fetching vendor info:", error);
       setError("Please Refresh Or Try Again Later!");
@@ -93,6 +96,11 @@ const Home = () => {
   };
 
   const handleAcceptOrder = async (orderId) => {
+    if (!isVerified) {
+      setShowVerificationModal(true);
+      return;
+    }
+
     setLoadingOrderIds((prev) => [...prev, orderId]);
     try {
       await axios.post(
@@ -331,12 +339,12 @@ const Home = () => {
           <button
             className="bg-white px-4 py-2 text-indigo-600 font-semibold rounded-full"
             onClick={() => {
-  try {
-    localStorage.clear();
-  } finally {
-    window.location.reload();
-  }
-}}
+              try {
+                localStorage.clear();
+              } finally {
+                window.location.reload();
+              }
+            }}
           >
             Click to refresh
           </button>
@@ -578,6 +586,43 @@ const Home = () => {
               className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition duration-300"
             >
               OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showVerificationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-sm w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-indigo-700">
+                Account Not Verified
+              </h3>
+              <button
+                onClick={() => setShowVerificationModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Your account is not verified yet. You need to complete the
+              verification process before accepting orders.
+            </p>
+            <p className="text-gray-600 mb-4">
+              For assistance, please contact us at:{" "}
+              <a
+                href="mailto:support@zotoplatforms.com"
+                className="text-indigo-600 hover:text-indigo-800"
+              >
+                support@zotoplatforms.com
+              </a>
+            </p>
+            <button
+              onClick={() => setShowVerificationModal(false)}
+              className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300"
+            >
+              Close
             </button>
           </div>
         </div>
