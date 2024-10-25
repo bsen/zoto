@@ -331,8 +331,12 @@ const Home = () => {
           <button
             className="bg-white px-4 py-2 text-indigo-600 font-semibold rounded-full"
             onClick={() => {
-              window.location.reload();
-            }}
+  try {
+    localStorage.clear();
+  } finally {
+    window.location.reload();
+  }
+}}
           >
             Click to refresh
           </button>
