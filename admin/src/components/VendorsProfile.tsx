@@ -415,10 +415,25 @@ const VendorProfile: React.FC = () => {
               vendor.isVerified
                 ? "bg-red-500 hover:bg-red-600"
                 : "bg-green-500 hover:bg-green-600"
-            } text-white
-} text-white rounded transition duration-300`}
+            } text-white rounded transition duration-300`}
           >
             {vendor.isVerified ? "Revoke Verification" : "Verify Vendor"}
+          </button>
+
+          <button
+            onClick={() => {
+              const message =
+                "Congratulations! Your profile has been verified on the Zoto Vendors Platform. You can now start accepting orders and growing your business with us. Welcome aboard!";
+              window.open(
+                `https://wa.me/${vendor.phone}?text=${encodeURIComponent(
+                  message
+                )}`,
+                "_blank"
+              );
+            }}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded transition duration-300"
+          >
+            Send Verification update
           </button>
         </div>
       </div>
