@@ -612,10 +612,10 @@ const Home = () => {
             <p className="text-gray-600 mb-4">
               For assistance, please contact us at:{" "}
               <a
-                href="mailto:support@zotoplatforms.com"
+                href="mailto:zotoplatforms@gmail.com"
                 className="text-indigo-600 hover:text-indigo-800"
               >
-                support@zotoplatforms.com
+                zotoplatforms@gmail.com
               </a>
             </p>
             <button

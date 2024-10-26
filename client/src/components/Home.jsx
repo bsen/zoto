@@ -133,7 +133,7 @@ const HomePage = () => {
           </h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
             Experience top-notch cleaning, AC repair, and appliance repair
-            services at your doorstep in Bangalore and Vellore.
+            services at your doorstep in Vellore.
           </p>
           <Link className="bg-yellow-400 text-indigo-600 px-8 py-3 rounded-full text-xl font-semibold hover:bg-yellow-300 transition duration-300 inline-block shadow-lg hover:shadow-xl transform hover:scale-105">
             Book a Service

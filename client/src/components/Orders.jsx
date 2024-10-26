@@ -120,14 +120,22 @@ const Orders = () => {
                       <p className="text-gray-600">
                         Total: ₹{order.totalAmount}
                       </p>
+<<<<<<< Updated upstream
                       <p className="text-gray-600">Status: {order.status}</p>
 
                       {order.vendorName && (
+=======
+                      <p className="text-gray-600">
+                        OTP: <span className="font-semibold">{order.otp}</span>
+                      </p>
+                      {/* {order.vendorName && (
+>>>>>>> Stashed changes
                         <div className="mt-2">
                           <p className="text-indigo-600">
                             Vendor: {order.vendorName}
                           </p>
                         </div>
+<<<<<<< Updated upstream
                       )}
                       <p className="text-gray-600">
                         OTP:{" "}
@@ -135,6 +143,9 @@ const Orders = () => {
                           {order.otp}
                         </span>
                       </p>
+=======
+                      )} */}
+>>>>>>> Stashed changes
                       <p className="text-sm text-gray-500 mt-2">
                         Address: {order.address.street}, {order.address.city},{" "}
                         {order.address.state}, {order.address.zipCode}
