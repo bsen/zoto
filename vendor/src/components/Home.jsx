@@ -357,8 +357,9 @@ const Home = () => {
     <div className="min-h-screen bg-indigo-600">
       <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <div className="flex items-center">
-          <h1 className="text-3xl font-bold text-white">
-            z<span className="text-yellow-400">o</span>to.V
+          <h1 className="text-2xl font-semibold text-white">
+            z<span className="text-yellow-400">o</span>to{" "}
+            <span className="text-sm">vendors</span>
           </h1>
         </div>
         {vendorName ? (
@@ -437,19 +438,19 @@ const Home = () => {
               <div>
                 <h3 className="text-xl font-bold mb-4">Quick Links</h3>
                 <ul className="space-y-2 text-sm">
-                  <li>
+                  {/* <li>
                     <Link
-                      to="/terms"
+                      to=""
                       className="flex items-center text-yellow-300 hover:text-yellow-100 transition duration-300 group"
                     >
                       <FileText size={18} className="mr-2" />
                       Terms & Conditions
                       <span className="ml-1 block max-w-0 group-hover:max-w-full transition-all duration-500 h-0.5 bg-yellow-300"></span>
                     </Link>
-                  </li>
+                  </li> */}
                   <li>
                     <Link
-                      to="/blogs"
+                      to="https://www.zotoplatforms.com/blogs"
                       className="flex items-center text-yellow-300 hover:text-yellow-100 transition duration-300 group"
                     >
                       <BookOpen size={18} className="mr-2" />

@@ -262,13 +262,6 @@ const Auth = () => {
             )}
           </div>
         )}
-        {popup && (
-          <div className="fixed inset-0 flex items-start justify-center z-50 px-4">
-            <div className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg max-w-md w-full text-center animate-fade-in-up">
-              <p className="text-lg font-semibold">{popup}</p>
-            </div>
-          </div>
-        )}
         {email && isSignupMode && (
           <div
             initial={{ opacity: 0, y: 20 }}
@@ -370,6 +363,7 @@ const Auth = () => {
             onClick={() => {
               setIsSignupMode(!isSignupMode);
               setEmail("");
+              setPopup(false);
             }}
             className="text-lg text-indigo-600 hover:text-indigo-500"
           >
