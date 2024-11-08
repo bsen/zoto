@@ -355,12 +355,9 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-indigo-600">
-      <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+      <div className="max-w-7xl mx-auto py-1 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <div className="flex items-center">
-          <h1 className="text-2xl font-semibold text-white">
-            z<span className="text-yellow-400">o</span>to{" "}
-            <span className="text-sm">vendors</span>
-          </h1>
+          <img src="zoto.png" className="max-sm:h-14 h-20" />
         </div>
         {vendorName ? (
           <div
