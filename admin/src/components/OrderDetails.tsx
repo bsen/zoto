@@ -46,7 +46,7 @@ const OrderDetails: React.FC = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `http://localhost:8080/api/admin/zotoplatforms/panel/orders/${orderId}`,
+          `https://www.server.zotoplatforms.com/api/admin/zotoplatforms/panel/orders/${orderId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }

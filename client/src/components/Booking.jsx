@@ -74,9 +74,12 @@ const Booking = () => {
   const fetchWalletBalance = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:8080/api/profileUrl", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        "https://www.server.zotoplatforms.com/api/profileUrl",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setWalletBalance(response.data.walletBalance);
     } catch (error) {
       console.error("Error fetching wallet balance:", error);
@@ -87,7 +90,7 @@ const Booking = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:8080/api/services/${id}`,
+        `https://www.server.zotoplatforms.com/api/services/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -122,7 +125,7 @@ const Booking = () => {
       );
       setBooking(true);
       await axios.post(
-        "http://localhost:8080/api/create-booking",
+        "https://www.server.zotoplatforms.com/api/create-booking",
         {
           serviceId: id,
           name: bookingData.name,

@@ -54,7 +54,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:8080/api/auth`,
+        `https://www.server.zotoplatforms.com/api/auth`,
         userData
       );
 

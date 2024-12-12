@@ -31,7 +31,7 @@ const Header = ({ user, setUser }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:8080/api/redeem-referral",
+        "https://www.server.zotoplatforms.com/api/redeem-referral",
         { referralCode },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -229,7 +229,9 @@ const HomePage = () => {
 
   const fetchServices = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/api/services");
+      const response = await axios.get(
+        "https://www.server.zotoplatforms.com/api/services"
+      );
       setServices(response.data.data);
       setIsLoading(false);
     } catch (error) {
@@ -242,7 +244,7 @@ const HomePage = () => {
     if (token) {
       try {
         const response = await axios.get(
-          "http://localhost:8080/api/profileUrl",
+          "https://www.server.zotoplatforms.com/api/profileUrl",
           {
             headers: { Authorization: `Bearer ${token}` },
           }

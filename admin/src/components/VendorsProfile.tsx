@@ -72,7 +72,7 @@ const VendorProfile: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get<ProfileResponse>(
-        `http://localhost:8080/api/admin/zotoplatforms/panel/vendors/${vendorId}/profile?page=${page}&limit=10`,
+        `https://www.server.zotoplatforms.com/api/admin/zotoplatforms/panel/vendors/${vendorId}/profile?page=${page}&limit=10`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -114,7 +114,7 @@ const VendorProfile: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:8080/api/admin/zotoplatforms/panel/vendors/${vendorId}`,
+        `https://www.server.zotoplatforms.com/api/admin/zotoplatforms/panel/vendors/${vendorId}`,
         editedVendor,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -143,7 +143,7 @@ const VendorProfile: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:8080/api/admin/zotoplatforms/panel/vendors/${vendorId}/verify`,
+        `https://www.server.zotoplatforms.com/api/admin/zotoplatforms/panel/vendors/${vendorId}/verify`,
         { isVerified: !editedVendor.isVerified },
         {
           headers: { Authorization: `Bearer ${token}` },
