@@ -5,6 +5,8 @@ import jwt from "jsonwebtoken";
 import { z } from "zod";
 import twilio from "twilio";
 import { format } from "date-fns";
+import { customAlphabet } from "nanoid";
+const nanoid = customAlphabet("23456789ABCDEFGHJKLMNPQRSTUVWXYZ", 8);
 
 const prisma = new PrismaClient();
 
@@ -68,18 +70,31 @@ clientRouter.post("/auth", async (req, res) => {
     });
 
     if (!user) {
+      const generateUniqueReferralCode = async (): Promise<string> => {
+        while (true) {
+          const code = nanoid();
+          const existingUser = await prisma.user.findUnique({
+            where: { referralCode: code },
+          });
+          if (!existingUser) {
+            return code;
+          }
+        }
+      };
+
+      const newReferralCode = await generateUniqueReferralCode();
+
       user = await prisma.user.create({
         data: {
           email,
           name,
           phone,
           profilePicture: profilePicture || null,
+          referralCode: newReferralCode,
+          walletBalance: 0,
+          referralActive: true,
         },
       });
-
-      if (!user) {
-        return res.status(500).json({ message: "Account creation failed" });
-      }
     } else {
       user = await prisma.user.update({
         where: { id: user.id },
@@ -104,6 +119,9 @@ clientRouter.post("/auth", async (req, res) => {
           email: user.email,
           phone: user.phone,
           profilePicture: user.profilePicture,
+          referralCode: user.referralCode,
+          walletBalance: user.walletBalance,
+          referralActive: user.referralActive,
         },
         token,
       },
@@ -116,10 +134,6 @@ clientRouter.post("/auth", async (req, res) => {
       return res
         .status(400)
         .json({ message: "Invalid input data", errors: error.errors });
-    }
-
-    if (error) {
-      console.error(error);
     }
 
     return res.status(500).json({ message: "Internal server error" });
@@ -168,7 +182,14 @@ clientRouter.get(
 
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { profilePicture: true, name: true },
+        select: {
+          profilePicture: true,
+          name: true,
+          walletBalance: true,
+          referredWith: true,
+          referralCode: true,
+          referralActive: true,
+        },
       });
 
       if (!user) {
@@ -179,6 +200,9 @@ clientRouter.get(
         status: 200,
         profileUrl: user.profilePicture || null,
         name: user.name,
+        walletBalance: user.walletBalance,
+        referredWith: user.referredWith,
+        referralCode: user.referralActive ? user.referralCode : null,
         message: "Profile URL retrieved successfully",
       });
     } catch (error) {
@@ -274,7 +298,7 @@ clientRouter.get(
 );
 
 clientRouter.post(
-  "/bookings",
+  "/create-booking",
   verifyToken,
   async (req: AuthRequest, res: express.Response) => {
     try {
@@ -288,9 +312,9 @@ clientRouter.post(
         name,
         phone,
         address,
-        totalAmount,
         notes,
         bookingDate,
+        useWalletBalance,
       } = req.body;
 
       if (!bookingDate) {
@@ -309,19 +333,26 @@ clientRouter.post(
         return res.status(404).json({ message: "User not found" });
       }
 
-      if (!user.phone) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: { phone },
-        });
-      }
-
       const service = await prisma.service.findUnique({
         where: { id: serviceId },
       });
 
       if (!service || !service.status) {
         return res.status(400).json({ message: "Service not available" });
+      }
+
+      // Calculate wallet balance usage
+      let finalAmount = service.price;
+      let newWalletBalance = user.walletBalance;
+
+      if (useWalletBalance && user.walletBalance > 0) {
+        if (service.price <= user.walletBalance) {
+          newWalletBalance = user.walletBalance - service.price;
+          finalAmount = 0;
+        } else {
+          finalAmount = service.price - user.walletBalance;
+          newWalletBalance = 0;
+        }
       }
 
       let userAddress = await prisma.address.findFirst({
@@ -350,21 +381,28 @@ clientRouter.post(
 
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-      const booking = await prisma.booking.create({
-        data: {
-          userId,
-          serviceId,
-          addressId: userAddress.id,
-          name,
-          phone,
-          datetime: new Date(bookingDate),
-          status: "PENDING",
-          totalAmount,
-          paymentStatus: "PENDING",
-          notes,
-          otp,
-        },
-      });
+      // Use transaction to update both booking and user wallet
+      const [booking, updatedUser] = await prisma.$transaction([
+        prisma.booking.create({
+          data: {
+            userId,
+            serviceId,
+            addressId: userAddress.id,
+            name,
+            phone,
+            datetime: new Date(bookingDate),
+            status: "PENDING",
+            totalAmount: finalAmount,
+            paymentStatus: "PENDING",
+            notes,
+            otp,
+          },
+        }),
+        prisma.user.update({
+          where: { id: userId },
+          data: { walletBalance: newWalletBalance },
+        }),
+      ]);
 
       const formattedDateTime = format(
         new Date(booking.datetime),
@@ -375,7 +413,14 @@ clientRouter.post(
         currency: "INR",
       }).format(booking.totalAmount);
 
-      const whatsappMessage = `Zoto Platforms: Your booking for ${service.name} has been confirmed for ${formattedDateTime}. Total amount: ${formattedAmount}. Your OTP for order completion is: ${otp}. Please share this with the service provider when they complete the service. Thank you for choosing Zoto Platforms!`;
+      const walletMessage =
+        useWalletBalance && user.walletBalance > 0
+          ? ` (₹${
+              user.walletBalance - newWalletBalance
+            } used from wallet balance)`
+          : "";
+
+      const whatsappMessage = `Zoto Platforms: Your booking for ${service.name} has been confirmed for ${formattedDateTime}. Total amount: ${formattedAmount}${walletMessage}. Your OTP for order completion is: ${otp}. Please share this with the service provider when they complete the service. Thank you for choosing Zoto Platforms!`;
       await sendWhatsAppNotification(phone, whatsappMessage);
 
       return res.status(200).json({
@@ -502,6 +547,131 @@ clientRouter.post(
       });
     } catch (error) {
       console.error("Error cancelling booking:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  }
+);
+
+const referralRedemptionSchema = z.object({
+  referralCode: z.string().length(8),
+});
+
+clientRouter.post(
+  "/redeem-referral",
+  verifyToken,
+  async (req: AuthRequest, res: express.Response) => {
+    try {
+      const userId = req.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { referralCode } = referralRedemptionSchema.parse(req.body);
+
+      const currentUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          referredWith: true,
+          referrerId: true,
+        },
+      });
+
+      if (!currentUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (currentUser.referredWith || currentUser.referrerId) {
+        return res
+          .status(400)
+          .json({ message: "You have already used a referral code" });
+      }
+
+      const referrerUser = await prisma.user.findUnique({
+        where: { referralCode },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          referralActive: true,
+        },
+      });
+
+      if (!referrerUser) {
+        return res.status(404).json({ message: "Invalid referral code" });
+      }
+
+      if (!referrerUser.referralActive) {
+        return res
+          .status(400)
+          .json({ message: "This referral code has already been used" });
+      }
+
+      if (referrerUser.id === userId) {
+        return res
+          .status(400)
+          .json({ message: "You cannot use your own referral code" });
+      }
+
+      const [updatedReferrer, updatedUser] = await prisma.$transaction([
+        prisma.user.update({
+          where: { id: referrerUser.id },
+          data: {
+            walletBalance: { increment: 500 },
+            referralActive: false,
+          },
+          select: {
+            name: true,
+            walletBalance: true,
+          },
+        }),
+
+        prisma.user.update({
+          where: { id: userId },
+          data: {
+            referredWith: referralCode,
+            referrerId: referrerUser.id,
+            walletBalance: { increment: 500 },
+          },
+          select: {
+            name: true,
+            walletBalance: true,
+          },
+        }),
+      ]);
+
+      const referralMessage = `Congratulations! You've earned ₹500 in your Zoto wallet for referring ${currentUser.name}!`;
+      await sendWhatsAppNotification(referrerUser.phone, referralMessage);
+
+      const welcomeMessage = `Congratulations! You've earned ₹500 in your wallet for using ${referrerUser.name}'s referral code!`;
+      await sendWhatsAppNotification(currentUser.phone, welcomeMessage);
+
+      return res.json({
+        status: 200,
+        data: {
+          message: "Referral code redeemed successfully",
+          currentUser: {
+            name: updatedUser.name,
+            newBalance: updatedUser.walletBalance,
+          },
+          referrer: {
+            name: updatedReferrer.name,
+            newBalance: updatedReferrer.walletBalance,
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Error redeeming referral:", error);
+
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: "Invalid input data",
+          errors: error.errors,
+        });
+      }
+
       return res.status(500).json({ message: "Internal server error" });
     }
   }

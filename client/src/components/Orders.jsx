@@ -10,6 +10,8 @@ const Orders = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState(null);
 
   useEffect(() => {
     fetchOrders();
@@ -20,12 +22,11 @@ const Orders = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `https://server.zotoplatforms.com/api/orders?page=${currentPage}&limit=5`,
+        `http://localhost:8080/api/orders?page=${currentPage}&limit=5`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log(response.data.data.orders);
       setOrders(response.data.data.orders);
       setTotalPages(response.data.data.totalPages);
       setIsLoading(false);
@@ -35,16 +36,23 @@ const Orders = () => {
     }
   };
 
+  const openCancelModal = (order) => {
+    setOrderToCancel(order);
+    setShowCancelModal(true);
+  };
+
   const handleCancelOrder = async (orderId) => {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        `https://server.zotoplatforms.com/api/bookings/${orderId}/cancel`,
+        `http://localhost:8080/api/bookings/${orderId}/cancel`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+      setShowCancelModal(false);
+      setOrderToCancel(null);
       fetchOrders();
     } catch (error) {
       console.error("Error cancelling order:", error);
@@ -74,14 +82,56 @@ const Orders = () => {
     </div>
   );
 
+  const CancelModal = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+    >
+      <motion.div
+        initial={{ scale: 0.95 }}
+        animate={{ scale: 1 }}
+        exit={{ scale: 0.95 }}
+        className="bg-white rounded-lg p-6 w-full max-w-md relative"
+      >
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          Cancel Order
+        </h2>
+        <p className="text-gray-600 mb-2">
+          Are you sure you want to cancel this order?
+        </p>
+        <p className="text-red-600 text-sm mb-6">
+          Please note: If wallet balance was used for this booking, it will not
+          be refunded upon cancellation.
+        </p>
+        <div className="flex gap-4">
+          <button
+            onClick={() => handleCancelOrder(orderToCancel.id)}
+            className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-300"
+          >
+            Yes, Cancel Order
+          </button>
+          <button
+            onClick={() => {
+              setShowCancelModal(false);
+              setOrderToCancel(null);
+            }}
+            className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition duration-300"
+          >
+            No, Keep Order
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+
   return (
     <div className="h-screen p-4 bg-indigo-600 overflow-y-auto no-scrollbar">
       <div className="container mx-auto">
         <div className="flex gap-4 mb-4">
           <div
-            onClick={() => {
-              navigate("/");
-            }}
+            onClick={() => navigate("/")}
             className="text-3xl cursor-pointer font-semibold text-white"
           >
             z<span className="text-yellow-400">o</span>to →
@@ -120,32 +170,15 @@ const Orders = () => {
                       <p className="text-gray-600">
                         Total: ₹{order.totalAmount}
                       </p>
-<<<<<<< Updated upstream
                       <p className="text-gray-600">Status: {order.status}</p>
 
                       {order.vendorName && (
-=======
-                      <p className="text-gray-600">
-                        OTP: <span className="font-semibold">{order.otp}</span>
-                      </p>
-                      {/* {order.vendorName && (
->>>>>>> Stashed changes
                         <div className="mt-2">
                           <p className="text-indigo-600">
                             Vendor: {order.vendorName}
                           </p>
                         </div>
-<<<<<<< Updated upstream
                       )}
-                      <p className="text-gray-600">
-                        OTP:{" "}
-                        <span className="font-semibold text-orange-500">
-                          {order.otp}
-                        </span>
-                      </p>
-=======
-                      )} */}
->>>>>>> Stashed changes
                       <p className="text-sm text-gray-500 mt-2">
                         Address: {order.address.street}, {order.address.city},{" "}
                         {order.address.state}, {order.address.zipCode}
@@ -157,10 +190,11 @@ const Orders = () => {
                       className="w-24 h-24 object-cover rounded-lg"
                     />
                   </div>
+
                   {order.status === "PENDING" && (
                     <button
-                      onClick={() => handleCancelOrder(order.id)}
-                      className="mt-4 bg-red-100 text-rose-600 px-4 py-2 rounded-full"
+                      onClick={() => openCancelModal(order)}
+                      className="mt-4 bg-red-100 text-rose-600 px-4 py-2 rounded-full hover:bg-red-200 transition duration-300"
                     >
                       Cancel Order
                     </button>
@@ -197,6 +231,7 @@ const Orders = () => {
           )}
         </div>
       </div>
+      <AnimatePresence>{showCancelModal && <CancelModal />}</AnimatePresence>
     </div>
   );
 };

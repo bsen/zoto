@@ -48,7 +48,7 @@ const Vendors: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `https://server.zotoplatforms.com/api/admin/zotoplatforms/panel/vendors?page=${currentPage}&limit=10`,
+        `http://localhost:8080/api/admin/zotoplatforms/panel/vendors?page=${currentPage}&limit=10`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -69,7 +69,7 @@ const Vendors: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "https://server.zotoplatforms.com/api/admin/zotoplatforms/panel/search-vendors",
+        "http://localhost:8080/api/admin/zotoplatforms/panel/search-vendors",
         { query: searchQuery },
         {
           headers: { Authorization: `Bearer ${token}` },

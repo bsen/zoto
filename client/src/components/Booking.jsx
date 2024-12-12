@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, addHours, setHours, setMinutes, isBefore } from "date-fns";
-import { Clock } from "lucide-react";
+import { Clock, X } from "lucide-react";
 
 const Booking = () => {
   const { id } = useParams();
@@ -11,6 +11,9 @@ const Booking = () => {
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(false);
+  const [useWalletBalance, setUseWalletBalance] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [finalPrice, setFinalPrice] = useState(0);
   const [bookingData, setBookingData] = useState({
     name: "",
     phone: "",
@@ -50,13 +53,41 @@ const Booking = () => {
 
   useEffect(() => {
     fetchServiceData();
+    fetchWalletBalance();
   }, [id]);
+
+  // Effect to calculate final price
+  useEffect(() => {
+    if (!service) return;
+
+    if (useWalletBalance) {
+      if (service.price <= walletBalance) {
+        setFinalPrice(0);
+      } else {
+        setFinalPrice(service.price - walletBalance);
+      }
+    } else {
+      setFinalPrice(service.price);
+    }
+  }, [useWalletBalance, service, walletBalance]);
+
+  const fetchWalletBalance = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:8080/api/profileUrl", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setWalletBalance(response.data.walletBalance);
+    } catch (error) {
+      console.error("Error fetching wallet balance:", error);
+    }
+  };
 
   const fetchServiceData = async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `https://server.zotoplatforms.com/api/services/${id}`,
+        `http://localhost:8080/api/services/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -91,7 +122,7 @@ const Booking = () => {
       );
       setBooking(true);
       await axios.post(
-        "https://server.zotoplatforms.com/api/bookings",
+        "http://localhost:8080/api/create-booking",
         {
           serviceId: id,
           name: bookingData.name,
@@ -103,8 +134,8 @@ const Booking = () => {
             country: bookingData.country,
             zipCode: bookingData.zipCode,
           },
-          totalAmount: service.price,
           bookingDate: bookingDateTime.toISOString(),
+          useWalletBalance,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -115,9 +146,9 @@ const Booking = () => {
         setShowSuccessModal(false);
         navigate("/");
       }, 3000);
-      setBooking(false);
     } catch (error) {
       console.error("Error creating booking:", error);
+    } finally {
       setBooking(false);
     }
   };
@@ -230,9 +261,7 @@ const Booking = () => {
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="mb-6">
             <div
-              onClick={() => {
-                navigate("/");
-              }}
+              onClick={() => navigate("/")}
               className="text-3xl cursor-pointer font-semibold text-indigo-600"
             >
               z<span className="text-yellow-400">o</span>to →
@@ -260,12 +289,28 @@ const Booking = () => {
                 <h1 className="text-2xl mb-2 font-semibold text-indigo-600">
                   Book {service.name}
                 </h1>
-
                 <p className="mb-4 text-gray-700">{service.description}</p>
                 <div className="flex items-center justify-between mb-4">
-                  <p className="text-3xl font-bold text-indigo-600">
-                    ₹{service.price}
-                  </p>
+                  <div>
+                    <p className="text-3xl font-bold text-indigo-600">
+                      ₹{finalPrice}
+                    </p>
+                    {walletBalance > 0 && (
+                      <div className="mt-2">
+                        <label className="flex items-center text-sm text-gray-600">
+                          <input
+                            type="checkbox"
+                            checked={useWalletBalance}
+                            onChange={(e) =>
+                              setUseWalletBalance(e.target.checked)
+                            }
+                            className="mr-2"
+                          />
+                          Use wallet balance (₹{walletBalance})
+                        </label>
+                      </div>
+                    )}
+                  </div>
                   <div className="flex items-center text-gray-600">
                     <Clock size={20} className="mr-2" />
                     {service.duration} minutes
@@ -314,7 +359,7 @@ const Booking = () => {
                     required
                   />
                 </div>
-                <div className="relative">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Street Address *
                   </label>
@@ -323,7 +368,7 @@ const Booking = () => {
                     name="street"
                     value={bookingData.street}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     required
                   />
                 </div>
@@ -429,31 +474,12 @@ const Booking = () => {
                 <motion.button
                   type="submit"
                   disabled={booking}
-                  className="w-full flex justify-center mt-6 bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 transition duration-300 font-semibold text-lg shadow-md"
+                  className="w-full flex justify-center items-center mt-6 bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 transition duration-300 font-semibold text-lg shadow-md disabled:bg-indigo-400"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   {booking ? (
-                    <svg
-                      className="animate-spin h-6 w-6 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
+                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   ) : (
                     "Confirm Booking"
                   )}

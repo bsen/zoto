@@ -50,7 +50,7 @@ const Home = () => {
   const fetchVendorInfo = async () => {
     try {
       const response = await axios.get(
-        "https://server.zotoplatforms.com/vendor/api/profile",
+        "http://localhost:8080/vendor/api/profile",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -66,7 +66,7 @@ const Home = () => {
   const fetchPendingOrders = async () => {
     try {
       const response = await axios.get(
-        "https://server.zotoplatforms.com/vendor/api/nearby-orders",
+        "http://localhost:8080/vendor/api/nearby-orders",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -83,7 +83,7 @@ const Home = () => {
   const fetchAcceptedOrders = async () => {
     try {
       const response = await axios.get(
-        "https://server.zotoplatforms.com/vendor/api/accepted-orders",
+        "http://localhost:8080/vendor/api/accepted-orders",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -104,7 +104,7 @@ const Home = () => {
     setLoadingOrderIds((prev) => [...prev, orderId]);
     try {
       await axios.post(
-        `https://server.zotoplatforms.com/vendor/api/accept-order/${orderId}`,
+        `http://localhost:8080/vendor/api/accept-order/${orderId}`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -130,7 +130,7 @@ const Home = () => {
       }
       setLoadingOrderIds((prev) => [...prev, orderId]);
       const response = await axios.post(
-        `https://server.zotoplatforms.com/vendor/api/complete-order/${orderId}`,
+        `http://localhost:8080/vendor/api/complete-order/${orderId}`,
         { otp },
         {
           headers: { Authorization: `Bearer ${token}` },

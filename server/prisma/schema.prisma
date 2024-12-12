@@ -23,6 +23,11 @@ model User {
   addresses      Address[]
   bookings       Booking[]
   reviews        Review[]
+  referralCode   String    @unique  
+  referredWith   String?   
+  referrerId     String?   
+  walletBalance  Float     @default(0)
+  referralActive Boolean   @default(true)  
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }

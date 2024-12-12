@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,8 +8,212 @@ import {
   Facebook,
   FileText,
   BookOpen,
+  X,
+  Wallet,
 } from "lucide-react";
+import { useClickAway } from "react-use";
 import "leaflet/dist/leaflet.css";
+
+const Header = ({ user, setUser }) => {
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showRedeemModal, setShowRedeemModal] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
+  const [redeemStatus, setRedeemStatus] = useState(null);
+  const dropdownRef = useRef(null);
+  const navigate = useNavigate();
+
+  useClickAway(dropdownRef, () => {
+    setShowDropdown(false);
+  });
+
+  const handleRedeemSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "http://localhost:8080/api/redeem-referral",
+        { referralCode },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setRedeemStatus({
+        type: "success",
+        message: `Success! You and ${response.data.data.referrer.name} both received ₹500!`,
+      });
+
+      setUser((prev) => ({
+        ...prev,
+        walletBalance: response.data.data.currentUser.newBalance,
+        referredWith: referralCode,
+      }));
+
+      setTimeout(() => {
+        setShowRedeemModal(false);
+        setRedeemStatus(null);
+        setReferralCode("");
+      }, 3000);
+    } catch (error) {
+      setRedeemStatus({
+        type: "error",
+        message: error.response?.data?.message || "Failed to redeem code",
+      });
+    }
+  };
+
+  return (
+    <header className="text-white p-2.5">
+      <div className="container mx-auto flex justify-between items-center">
+        <Link to="/" className="flex items-center">
+          <motion.h1
+            className="text-4xl font-bold"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            z<span className="text-yellow-400">o</span>to
+          </motion.h1>
+        </Link>
+        <nav className="flex items-center">
+          {user ? (
+            <div className="relative" ref={dropdownRef}>
+              <img
+                src={user.profileUrl || "/user.png"}
+                className="w-10 h-10 rounded-full cursor-pointer border-2 border-white"
+                onClick={() => setShowDropdown(!showDropdown)}
+                alt="Profile"
+              />
+
+              <AnimatePresence>
+                {showDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 text-gray-700"
+                  >
+                    <div className="px-4 py-2 border-b">
+                      <p className="text-sm font-semibold">{user.name}</p>
+                      <div className="flex items-center text-green-600 mt-2">
+                        <Wallet size={16} className="mr-1" />
+                        <p className="text-sm">₹{user.walletBalance}</p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => navigate("/orders")}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center border-neutral-200"
+                    >
+                      My Orders
+                    </button>
+                    {user.referralCode && (
+                      <div className="px-4 py-2 border-t border-b border-neutral-200">
+                        <p className="text-sm font-semibold">
+                          Your Referral Code
+                        </p>
+                        <div className="flex items-center justify-between mt-2">
+                          <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+                            {user.referralCode}
+                          </code>
+                        </div>
+                      </div>
+                    )}
+                    {!user.referredWith && (
+                      <button
+                        onClick={() => {
+                          setShowRedeemModal(true);
+                          setShowDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-neutral-800"
+                      >
+                        Redeem Code
+                      </button>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              className="bg-white text-indigo-600 px-4 py-2 rounded-full hover:bg-indigo-100 transition duration-300"
+            >
+              Login/Signup
+            </Link>
+          )}
+        </nav>
+      </div>
+
+      <AnimatePresence>
+        {showRedeemModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              className="bg-white rounded-lg p-6 w-full max-w-md relative"
+            >
+              <button
+                onClick={() => setShowRedeemModal(false)}
+                className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+              >
+                <X size={20} />
+              </button>
+
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Redeem Referral Code
+              </h2>
+
+              {redeemStatus ? (
+                <div
+                  className={`p-4 rounded-lg ${
+                    redeemStatus.type === "success"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {redeemStatus.message}
+                </div>
+              ) : (
+                <form onSubmit={handleRedeemSubmit}>
+                  <input
+                    type="text"
+                    value={referralCode}
+                    onChange={(e) =>
+                      setReferralCode(e.target.value.toUpperCase())
+                    }
+                    placeholder="Enter referral code"
+                    className="w-full p-3 border rounded-lg mb-4 text-black"
+                    maxLength={8}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition duration-300 relative"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
+                        <span className="sr-only">Loading...</span>
+                      </>
+                    ) : (
+                      "Redeem Code"
+                    )}
+                  </button>
+                </form>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
+  );
+};
 
 const HomePage = () => {
   const [services, setServices] = useState([]);
@@ -25,9 +229,7 @@ const HomePage = () => {
 
   const fetchServices = async () => {
     try {
-      const response = await axios.get(
-        "https://server.zotoplatforms.com/api/services"
-      );
+      const response = await axios.get("http://localhost:8080/api/services");
       setServices(response.data.data);
       setIsLoading(false);
     } catch (error) {
@@ -40,7 +242,7 @@ const HomePage = () => {
     if (token) {
       try {
         const response = await axios.get(
-          "https://server.zotoplatforms.com/api/profileUrl",
+          "http://localhost:8080/api/profileUrl",
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -48,6 +250,9 @@ const HomePage = () => {
         setUser({
           name: response.data.name,
           profileUrl: response.data.profileUrl,
+          walletBalance: response.data.walletBalance,
+          referredWith: response.data.referredWith,
+          referralCode: response.data.referralCode,
         });
       } catch (error) {
         console.error("Error fetching user profile:", error);
@@ -63,6 +268,7 @@ const HomePage = () => {
 
   const handleLogout = () => {
     localStorage.clear();
+    setUser(null);
     navigate("/login");
   };
 
@@ -85,41 +291,7 @@ const HomePage = () => {
 
   return (
     <div className="h-screen bg-indigo-600 overflow-y-auto no-scrollbar">
-      <header className="text-white p-2.5">
-        <div className="container mx-auto flex justify-between items-center">
-          <Link to="/" className="flex items-center">
-            <motion.h1
-              className="text-4xl font-bold"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              z<span className="text-yellow-400">o</span>to
-            </motion.h1>
-          </Link>
-          <nav className="flex items-center">
-            {user ? (
-              <div
-                className="flex items-center bg-indigo-700 px-3 py-2 rounded-full cursor-pointer"
-                onClick={() => navigate("/orders")}
-              >
-                <img
-                  src={user.profileUrl || "/default-avatar.png"}
-                  className="w-8 h-8 rounded-full mr-2"
-                />
-                <span className="text-sm">{user.name}</span>
-              </div>
-            ) : (
-              <Link
-                to="/login"
-                className="bg-white text-indigo-600 px-4 py-2 rounded-full hover:bg-indigo-100 transition duration-300"
-              >
-                Login/Signup
-              </Link>
-            )}
-          </nav>
-        </div>
-      </header>
+      <Header user={user} setUser={setUser} />
 
       <main className="container mx-auto mt-10 px-4">
         <motion.section
