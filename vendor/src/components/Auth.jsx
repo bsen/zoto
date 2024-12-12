@@ -38,14 +38,22 @@ const Auth = () => {
       const idToken = await result.user.getIdToken();
 
       if (email) {
-        if (isSignupMode) {
-          setEmail(email);
-          setVendorData((prevData) => ({
-            ...prevData,
-            name: result.user.displayName || "",
-          }));
-        } else {
+        try {
+          // Always try to login first
           await authenticateVendor(email, idToken);
+          // If login succeeds, user will be redirected
+        } catch (error) {
+          // If login fails and we're in signup mode, show registration form
+          if (isSignupMode) {
+            setEmail(email);
+            setVendorData((prevData) => ({
+              ...prevData,
+              name: result.user.displayName || "",
+            }));
+          } else {
+            // If in login mode and login failed, show error
+            setPopup("Account not found. Please sign up first.");
+          }
         }
       } else {
         throw new Error("Failed to retrieve user information from Google");
@@ -135,9 +143,7 @@ const Auth = () => {
       }
     } catch (error) {
       console.error(error);
-      setPopup(
-        error.response?.data?.message || "Network error, try again later"
-      );
+      throw error;
     }
   };
 
@@ -188,10 +194,6 @@ const Auth = () => {
             <span variants={letterVariants}>t</span>
             <span variants={letterVariants}>o</span>
             <span> for vendors</span>
-            <div
-              className="absolute -bottom-1 left-0 right-0 h-1 bg-indigo-600"
-              variants={underlineVariants}
-            />
           </h1>
           <p
             className="text-center mt-4 text-base sm:text-lg text-gray-600 max-w-sm"
