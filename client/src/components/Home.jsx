@@ -18,6 +18,7 @@ const Header = ({ user, setUser }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showRedeemModal, setShowRedeemModal] = useState(false);
   const [referralCode, setReferralCode] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [redeemStatus, setRedeemStatus] = useState(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ const Header = ({ user, setUser }) => {
 
   const handleRedeemSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
@@ -58,6 +60,8 @@ const Header = ({ user, setUser }) => {
         type: "error",
         message: error.response?.data?.message || "Failed to redeem code",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -78,8 +82,8 @@ const Header = ({ user, setUser }) => {
           {user ? (
             <div className="relative" ref={dropdownRef}>
               <img
-                src={user.profileUrl || "/user.png"}
-                className="w-10 h-10 rounded-full cursor-pointer border-2 border-white"
+                src={"/user.png"}
+                className="w-10 h-10 bg-white rounded-full cursor-pointer border-2 border-white"
                 onClick={() => setShowDropdown(!showDropdown)}
                 alt="Profile"
               />
@@ -90,7 +94,7 @@ const Header = ({ user, setUser }) => {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 text-gray-700"
+                    className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 text-gray-700 z-50"
                   >
                     <div className="px-4 py-2 border-b">
                       <p className="text-sm font-semibold">{user.name}</p>
