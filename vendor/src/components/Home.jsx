@@ -315,7 +315,7 @@ const Home = () => {
 
           <div>
             <div className="h-8 bg-gray-200 rounded w-64 mb-8 animate-pulse"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               {[...Array(6)].map((_, index) => (
                 <SkeletonOrderCard key={index} />
               ))}
@@ -549,7 +549,10 @@ const Home = () => {
                 Account Not Verified
               </h3>
               <button
-                onClick={() => setShowVerificationModal(false)}
+                onClick={() => {
+                  setShowVerificationModal(false);
+                  window.location.reload();
+                }}
                 className="text-gray-400 hover:text-gray-600"
               >
                 <X size={24} />
@@ -569,7 +572,10 @@ const Home = () => {
               </a>
             </p>
             <button
-              onClick={() => setShowVerificationModal(false)}
+              onClick={() => {
+                setShowVerificationModal(false);
+                window.location.reload();
+              }}
               className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300"
             >
               Close
