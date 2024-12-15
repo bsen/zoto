@@ -5,90 +5,85 @@ import {
   PaymentStatus,
   PrismaClient,
 } from "@prisma/client";
-import admin from "firebase-admin";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
+import bcryptjs from "bcryptjs";
 
 const prisma = new PrismaClient();
-
-const vendorServiceAccount = require("../../vendor-key.json");
-const vendorApp = admin.initializeApp(
-  {
-    credential: admin.credential.cert(vendorServiceAccount),
-  },
-  "VENDOR_APP"
-);
-
-const vendorAuth = vendorApp.auth();
 
 const vendorRouter = express.Router();
 
 const vendorSignupSchema = z.object({
-  email: z.string().email(),
   name: z.string(),
   phone: z.string(),
-  idToken: z.string(),
-  profilePicture: z.string().optional(),
+  password: z.string(),
   address: z.string(),
   pincode: z.string(),
-  skills: z.array(z.string()),
   aadhaarNumber: z.string(),
   panNumber: z.string(),
+  profilePicture: z.string().optional(),
 });
 
 const vendorLoginSchema = z.object({
-  email: z.string().email(),
-  idToken: z.string(),
+  phone: z.string(),
+  password: z.string(),
 });
 
-vendorRouter.post("/signup", async (req, res) => {
+vendorRouter.post("/vendor-auth/signup", async (req, res) => {
   try {
     const {
-      email,
       name,
       phone,
-      idToken,
-      profilePicture,
+      password,
       address,
       pincode,
-      skills,
       aadhaarNumber,
       panNumber,
+      profilePicture,
     } = vendorSignupSchema.parse(req.body);
 
-    const decodedToken = await vendorAuth.verifyIdToken(idToken);
-
-    if (decodedToken.email !== email) {
-      return res.status(400).json({ message: "Email mismatch" });
-    }
-
     let vendor = await prisma.vendor.findUnique({
-      where: { email: email },
+      where: { phone },
     });
 
     if (vendor) {
-      return res.status(400).json({ message: "Vendor already exists" });
+      return res
+        .status(400)
+        .json({ message: "Phone number already registered" });
     }
+
+    const existingVendor = await prisma.vendor.findFirst({
+      where: {
+        OR: [{ aadhaarNumber }, { panNumber }],
+      },
+    });
+
+    if (existingVendor) {
+      return res.status(400).json({
+        message:
+          existingVendor.aadhaarNumber === aadhaarNumber
+            ? "Aadhaar number already registered"
+            : "PAN number already registered",
+      });
+    }
+
+    const hashedPassword = await bcryptjs.hash(password, 10);
 
     vendor = await prisma.vendor.create({
       data: {
-        email,
         name,
         phone,
-        profilePicture: profilePicture || null,
+        password: hashedPassword,
         address,
         pincode,
-        skills: skills as any,
         aadhaarNumber,
         panNumber,
+        skills: [],
+        profilePicture: profilePicture || null,
         isVerified: false,
         isAvailable: true,
       },
     });
-
-    if (!vendor) {
-      return res.status(500).json({ message: "Vendor creation failed" });
-    }
 
     const token = jwt.sign(
       { id: vendor.id },
@@ -104,8 +99,9 @@ vendorRouter.post("/signup", async (req, res) => {
         vendor: {
           id: vendor.id,
           name: vendor.name,
-          email: vendor.email,
           phone: vendor.phone,
+          address: vendor.address,
+          pincode: vendor.pincode,
           profilePicture: vendor.profilePicture,
           isVerified: vendor.isVerified,
           isAvailable: vendor.isAvailable,
@@ -127,21 +123,21 @@ vendorRouter.post("/signup", async (req, res) => {
   }
 });
 
-vendorRouter.post("/login", async (req, res) => {
+vendorRouter.post("/vendor-auth/login", async (req, res) => {
   try {
-    const { email, idToken } = vendorLoginSchema.parse(req.body);
-    const decodedToken = await vendorAuth.verifyIdToken(idToken);
-
-    if (decodedToken.email !== email) {
-      return res.status(400).json({ message: "Email mismatch" });
-    }
+    const { phone, password } = vendorLoginSchema.parse(req.body);
 
     const vendor = await prisma.vendor.findUnique({
-      where: { email: email },
+      where: { phone },
     });
 
     if (!vendor) {
       return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    const isPasswordValid = await bcryptjs.compare(password, vendor.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const token = jwt.sign(
@@ -158,8 +154,9 @@ vendorRouter.post("/login", async (req, res) => {
         vendor: {
           id: vendor.id,
           name: vendor.name,
-          email: vendor.email,
           phone: vendor.phone,
+          address: vendor.address,
+          pincode: vendor.pincode,
           profilePicture: vendor.profilePicture,
           isVerified: vendor.isVerified,
           isAvailable: vendor.isAvailable,
@@ -232,7 +229,6 @@ vendorRouter.get(
           phone: true,
           profilePicture: true,
           address: true,
-          skills: true,
           isVerified: true,
           isAvailable: true,
         },

@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 
-const Login = () => {
+const Signup = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    name: "",
     phone: "",
     password: "",
   });
@@ -31,7 +32,7 @@ const Login = () => {
       setError("");
 
       const response = await axios.post(
-        "https://www.server.zotoplatforms.com/api/auth/login",
+        "https://www.server.zotoplatforms.com/api/auth/signup",
         formData
       );
 
@@ -41,7 +42,7 @@ const Login = () => {
       }
     } catch (error) {
       setError(
-        error.response?.data?.message || "Login failed. Please try again."
+        error.response?.data?.message || "Signup failed. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -55,12 +56,12 @@ const Login = () => {
           <h1 className="text-4xl font-bold text-white">
             z<span className="text-yellow-400">o</span>to
           </h1>
-          <p className="mt-2 text-2xl text-white">Welcome back</p>
+          <p className="mt-2 text-2xl text-white">Create Account</p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="mt-8 bg-white p-6 rounded-lg shadow"
+          className="mt-8 bg-white p-6 rounded-lg shadow-lg"
         >
           {error && (
             <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
@@ -69,6 +70,25 @@ const Login = () => {
           )}
 
           <div className="space-y-4">
+            <div>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Full Name
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                required
+                value={formData.name}
+                onChange={handleChange}
+                className="mt-1 block w-full p-3 border border-gray-300 rounded focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Enter your full name"
+              />
+            </div>
+
             <div>
               <label
                 htmlFor="phone"
@@ -104,7 +124,7 @@ const Login = () => {
                 value={formData.password}
                 onChange={handleChange}
                 className="mt-1 block w-full p-3 border border-gray-300 rounded focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Enter your password"
+                placeholder="Create a password"
               />
             </div>
 
@@ -115,15 +135,15 @@ const Login = () => {
                 isLoading ? "opacity-75 cursor-not-allowed" : ""
               }`}
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? "Creating account..." : "Sign Up"}
             </button>
 
             <div className="text-center mt-4">
               <Link
-                to="/signup"
+                to="/login"
                 className="text-indigo-600 hover:text-indigo-500"
               >
-                Don't have an account? Sign up
+                Already have an account? Login
               </Link>
             </div>
           </div>
@@ -133,4 +153,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;

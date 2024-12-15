@@ -6,15 +6,16 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import Auth from "./components/Auth";
 import Home from "./components/Home";
+import VendorLogin from "./components/Login";
+import VendorSignup from "./components/Signup";
 
 const ProtectedRoute = ({ children }) => {
   const vendorToken = localStorage.getItem("vendorToken");
   const location = useLocation();
 
   if (!vendorToken) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return children;
@@ -22,10 +23,9 @@ const ProtectedRoute = ({ children }) => {
 
 const PublicRoute = ({ children }) => {
   const vendorToken = localStorage.getItem("vendorToken");
-  const location = useLocation();
 
   if (vendorToken) {
-    return <Navigate to="/" state={{ from: location }} replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children;
@@ -36,13 +36,22 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route
-          path="/auth"
+          path="/login"
           element={
             <PublicRoute>
-              <Auth />
+              <VendorLogin />
             </PublicRoute>
           }
         />
+        <Route
+          path="/signup"
+          element={
+            <PublicRoute>
+              <VendorSignup />
+            </PublicRoute>
+          }
+        />
+
         <Route
           path="/"
           element={
@@ -51,7 +60,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

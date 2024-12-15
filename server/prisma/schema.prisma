@@ -16,9 +16,10 @@ model Admin {
 
 model User {
   id             String    @id @default(uuid())
-  email          String    @unique
+  email          String?   @unique
+  phone          String    @unique
+  password       String   
   name           String
-  phone          String
   profilePicture String?
   addresses      Address[]
   bookings       Booking[]
@@ -123,13 +124,14 @@ model Promotion {
 
 model Vendor {
   id             String           @id @default(uuid())
+  email          String?   @unique
+  phone          String    @unique
+  password       String   
   name           String
-  email          String           @unique
-  phone          String
   profilePicture String?
   address        String
   pincode        String
-  skills         VendorSkill[]
+  skills VendorSkill[] @default([])
   aadhaarNumber  String           @unique
   panNumber      String           @unique
   isVerified     Boolean          @default(false)

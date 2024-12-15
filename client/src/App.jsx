@@ -12,6 +12,7 @@ import Booking from "./components/Booking";
 import Orders from "./components/Orders";
 import TermsAndConditions from "./components/TermsAndConditions";
 import Blogs from "./components/Blogs";
+import Signup from "./components/Signup";
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
@@ -44,6 +45,14 @@ function App() {
           element={
             <PublicRoute>
               <Login />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <PublicRoute>
+              <Signup />
             </PublicRoute>
           }
         />

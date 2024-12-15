@@ -14,63 +14,64 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const client_1 = require("@prisma/client");
-const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const zod_1 = require("zod");
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const prisma = new client_1.PrismaClient();
-const vendorServiceAccount = require("../../vendor-key.json");
-const vendorApp = firebase_admin_1.default.initializeApp({
-    credential: firebase_admin_1.default.credential.cert(vendorServiceAccount),
-}, "VENDOR_APP");
-const vendorAuth = vendorApp.auth();
 const vendorRouter = express_1.default.Router();
 const vendorSignupSchema = zod_1.z.object({
-    email: zod_1.z.string().email(),
     name: zod_1.z.string(),
     phone: zod_1.z.string(),
-    idToken: zod_1.z.string(),
-    profilePicture: zod_1.z.string().optional(),
+    password: zod_1.z.string(),
     address: zod_1.z.string(),
     pincode: zod_1.z.string(),
-    skills: zod_1.z.array(zod_1.z.string()),
     aadhaarNumber: zod_1.z.string(),
     panNumber: zod_1.z.string(),
+    profilePicture: zod_1.z.string().optional(),
 });
 const vendorLoginSchema = zod_1.z.object({
-    email: zod_1.z.string().email(),
-    idToken: zod_1.z.string(),
+    phone: zod_1.z.string(),
+    password: zod_1.z.string(),
 });
-vendorRouter.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+vendorRouter.post("/vendor-auth/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { email, name, phone, idToken, profilePicture, address, pincode, skills, aadhaarNumber, panNumber, } = vendorSignupSchema.parse(req.body);
-        const decodedToken = yield vendorAuth.verifyIdToken(idToken);
-        if (decodedToken.email !== email) {
-            return res.status(400).json({ message: "Email mismatch" });
-        }
+        const { name, phone, password, address, pincode, aadhaarNumber, panNumber, profilePicture, } = vendorSignupSchema.parse(req.body);
         let vendor = yield prisma.vendor.findUnique({
-            where: { email: email },
+            where: { phone },
         });
         if (vendor) {
-            return res.status(400).json({ message: "Vendor already exists" });
+            return res
+                .status(400)
+                .json({ message: "Phone number already registered" });
         }
+        const existingVendor = yield prisma.vendor.findFirst({
+            where: {
+                OR: [{ aadhaarNumber }, { panNumber }],
+            },
+        });
+        if (existingVendor) {
+            return res.status(400).json({
+                message: existingVendor.aadhaarNumber === aadhaarNumber
+                    ? "Aadhaar number already registered"
+                    : "PAN number already registered",
+            });
+        }
+        const hashedPassword = yield bcryptjs_1.default.hash(password, 10);
         vendor = yield prisma.vendor.create({
             data: {
-                email,
                 name,
                 phone,
-                profilePicture: profilePicture || null,
+                password: hashedPassword,
                 address,
                 pincode,
-                skills: skills,
                 aadhaarNumber,
                 panNumber,
+                skills: [],
+                profilePicture: profilePicture || null,
                 isVerified: false,
                 isAvailable: true,
             },
         });
-        if (!vendor) {
-            return res.status(500).json({ message: "Vendor creation failed" });
-        }
         const token = jsonwebtoken_1.default.sign({ id: vendor.id }, process.env.JWT_SECRET, {
             expiresIn: "7d",
         });
@@ -80,8 +81,9 @@ vendorRouter.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, fun
                 vendor: {
                     id: vendor.id,
                     name: vendor.name,
-                    email: vendor.email,
                     phone: vendor.phone,
+                    address: vendor.address,
+                    pincode: vendor.pincode,
                     profilePicture: vendor.profilePicture,
                     isVerified: vendor.isVerified,
                     isAvailable: vendor.isAvailable,
@@ -101,18 +103,18 @@ vendorRouter.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, fun
         return res.status(500).json({ message: "Internal server error" });
     }
 }));
-vendorRouter.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+vendorRouter.post("/vendor-auth/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { email, idToken } = vendorLoginSchema.parse(req.body);
-        const decodedToken = yield vendorAuth.verifyIdToken(idToken);
-        if (decodedToken.email !== email) {
-            return res.status(400).json({ message: "Email mismatch" });
-        }
+        const { phone, password } = vendorLoginSchema.parse(req.body);
         const vendor = yield prisma.vendor.findUnique({
-            where: { email: email },
+            where: { phone },
         });
         if (!vendor) {
             return res.status(404).json({ message: "Vendor not found" });
+        }
+        const isPasswordValid = yield bcryptjs_1.default.compare(password, vendor.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: "Invalid credentials" });
         }
         const token = jsonwebtoken_1.default.sign({ id: vendor.id }, process.env.JWT_SECRET, {
             expiresIn: "7d",
@@ -123,8 +125,9 @@ vendorRouter.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, func
                 vendor: {
                     id: vendor.id,
                     name: vendor.name,
-                    email: vendor.email,
                     phone: vendor.phone,
+                    address: vendor.address,
+                    pincode: vendor.pincode,
                     profilePicture: vendor.profilePicture,
                     isVerified: vendor.isVerified,
                     isAvailable: vendor.isAvailable,
@@ -175,7 +178,6 @@ vendorRouter.get("/profile", verifyVendorToken, (req, res) => __awaiter(void 0, 
                 phone: true,
                 profilePicture: true,
                 address: true,
-                skills: true,
                 isVerified: true,
                 isAvailable: true,
             },

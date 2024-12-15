@@ -20,4 +20,4 @@ async function addAdmin(username: string, password: string): Promise<void> {
   }
 }
 
-addAdmin("admin1@ckgopi", "12191219@sec");
+addAdmin("admin@1", "admin@1");

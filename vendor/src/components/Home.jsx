@@ -34,12 +34,12 @@ const Home = () => {
 
   const handleLogout = () => {
     localStorage.clear();
-    navigate("/auth");
+    navigate("/login");
   };
 
   useEffect(() => {
     if (!token) {
-      navigate("/vendor/login");
+      navigate("/login");
     } else {
       fetchVendorInfo();
       fetchPendingOrders();
@@ -186,22 +186,22 @@ const Home = () => {
 
     const isLoading = loadingOrderIds.includes(order.id);
 
-    const buttonClass = `w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300 flex items-center justify-center ${
+    const buttonClass = `w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300 flex items-center justify-center ${
       isOtpValid ? "opacity-100" : "opacity-50 cursor-not-allowed"
     }`;
 
     return (
       <div className="bg-white rounded-lg overflow-hidden shadow-lg relative mb-4">
         <div className="p-6">
-          <h4 className="text-xl font-semibold text-indigo-700 mb-3">
+          <h4 className="text-xl font-semibold text-blue-700 mb-3">
             {order.serviceName || order.service?.name || "Unnamed Service"}
           </h4>
           <div className="space-y-3">
-            <div className="flex items-center text-indigo-600">
+            <div className="flex items-center text-blue-600">
               <MapPin size={18} className="mr-3 text-neutral-600" />
               <span>{formatAddress(order.address)}</span>
             </div>
-            <div className="flex items-center text-indigo-600">
+            <div className="flex items-center text-blue-600">
               <Clock size={18} className="mr-3 text-neutral-600" />
               <span>
                 {order.dateTime || order.datetime
@@ -209,11 +209,11 @@ const Home = () => {
                   : "No date available"}
               </span>
             </div>
-            <div className="flex items-center text-indigo-600">
+            <div className="flex items-center text-blue-600">
               <IndianRupee size={18} className="mr-3 text-neutral-600" />
               <span>{order.totalAmount || "Price not available"}</span>
             </div>
-            <div className="flex items-center text-indigo-600">
+            <div className="flex items-center text-blue-600">
               <User size={18} className="mr-3 text-neutral-600" />
               <span>
                 {order.customerName || order.user?.name || "Unknown User"}
@@ -224,7 +224,7 @@ const Home = () => {
             {!isAccepted ? (
               <button
                 onClick={() => handleAcceptOrder(order.id)}
-                className="w-full bg-indigo-600 text-white py-3 rounded-full hover:bg-indigo-700 transition duration-300 shadow-md disabled:opacity-50"
+                className="w-full bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 transition duration-300 shadow-md disabled:opacity-50"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -246,7 +246,7 @@ const Home = () => {
                       value={localOtp}
                       onChange={handleOtpChange}
                       placeholder="Enter 6-digit OTP"
-                      className="w-full px-3 py-2 border border-indigo-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <button
                       onClick={() => handleCompleteOrder(order.id, localOtp)}
@@ -271,7 +271,7 @@ const Home = () => {
                     onClick={() =>
                       setShowOtpInput((prev) => ({ ...prev, [order.id]: true }))
                     }
-                    className="w-full bg-indigo-600 text-white py-3 rounded-full hover:bg-indigo-700 transition duration-300 shadow-md"
+                    className="w-full bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 transition duration-300 shadow-md"
                   >
                     Complete Order
                   </button>
@@ -295,14 +295,14 @@ const Home = () => {
   );
 
   const LoadingSkeleton = () => (
-    <div className="min-h-screen bg-indigo-600">
+    <div className="min-h-screen bg-blue-600">
       <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <div className="flex items-center">
           <h1 className="text-3xl font-bold text-white">
             z<span className="text-yellow-400">o</span>to
           </h1>
         </div>
-        <div className="text-indigo-500 size-8 flex justify-center items-center font-semibold border border-white  rounded-full bg-white cursor-pointer"></div>
+        <div className="text-blue-500 size-8 flex justify-center items-center font-semibold border border-white  rounded-full bg-white cursor-pointer"></div>
       </div>
 
       <main>
@@ -332,12 +332,12 @@ const Home = () => {
 
   if (error) {
     return (
-      <div className="h-screen bg-indigo-600 flex justify-center items-center">
+      <div className="h-screen bg-blue-600 flex justify-center items-center">
         <div className="flex flex-col items-center gap-4 justify-center">
           <img src="zoto.png" className="h-14 rounded-full border-2" />
           <div className="text-white text-2xl">{error}</div>
           <button
-            className="bg-white px-4 py-2 text-indigo-600 font-semibold rounded-full"
+            className="bg-white px-4 py-2 text-blue-600 font-semibold rounded-full"
             onClick={() => {
               try {
                 localStorage.clear();
@@ -354,14 +354,14 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen bg-indigo-600">
+    <div className="min-h-screen bg-blue-600">
       <div className="max-w-7xl mx-auto py-1 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <div className="flex items-center">
           <img src="zoto.png" className="max-sm:h-14 h-20" />
         </div>
         {vendorName ? (
           <div
-            className="text-indigo-500 size-8 flex justify-center items-center font-semibold border border-white  rounded-full bg-white cursor-pointer"
+            className="text-blue-500 size-8 flex justify-center items-center font-semibold border border-white  rounded-full bg-white cursor-pointer"
             onClick={() => setShowModal(true)}
           >
             {vendorName[0]}
@@ -377,14 +377,14 @@ const Home = () => {
             <h2 className="text-4xl font-extrabold text-white sm:text-5xl sm:tracking-tight lg:text-6xl">
               Earn Money with Zoto Vendor Platform
             </h2>
-            <p className="mt-5 max-w-xl mx-auto text-xl text-indigo-100">
+            <p className="mt-5 max-w-xl mx-auto text-xl text-blue-100">
               Join our network of skilled professionals and start earning by
               providing top-notch services to customers in your area.
             </p>
             <div className="mt-8">
               <a
                 href="#available-orders"
-                className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-950"
+                className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-950"
               >
                 View Available Orders
               </a>
@@ -406,7 +406,7 @@ const Home = () => {
             )}
           </div>
         </div>
-        <footer className="bg-indigo-600 text-white mt-16 py-12 border-t border-indigo-500">
+        <footer className="bg-blue-600 text-white mt-16 py-12 border-t border-blue-500">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="flex flex-col justify-between">
@@ -417,7 +417,7 @@ const Home = () => {
                       href="https://www.instagram.com/zotoplatforms"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-indigo-200 transition-colors"
+                      className="hover:text-blue-200 transition-colors"
                     >
                       <Instagram size={24} />
                     </a>
@@ -425,7 +425,7 @@ const Home = () => {
                       href="https://www.linkedin.com/company/zoto-platforms-pvt-ltd/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-indigo-200 transition-colors"
+                      className="hover:text-blue-200 transition-colors"
                     >
                       <Linkedin size={24} />
                     </a>
@@ -433,7 +433,7 @@ const Home = () => {
                       href="https://www.facebook.com/share/oEbxBC6edDx7HHbh/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-indigo-200 transition-colors"
+                      className="hover:text-blue-200 transition-colors"
                     >
                       <Facebook size={24} />
                     </a>
@@ -463,7 +463,7 @@ const Home = () => {
           <div className="bg-white p-6 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <div className="w-full text-center">
-                <h2 className="text-2xl font-bold text-indigo-950 text-center underline underline-offset-4">
+                <h2 className="text-2xl font-bold text-blue-950 text-center underline underline-offset-4">
                   Accepted Orders
                 </h2>
               </div>
@@ -479,7 +479,7 @@ const Home = () => {
                 <OrderCard key={order.id} order={order} isAccepted={true} />
               ))
             ) : (
-              <p className="text-indigo-600 text-center py-4">
+              <p className="text-blue-600 text-center py-4">
                 No accepted orders at the moment.
               </p>
             )}
@@ -490,7 +490,7 @@ const Home = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-sm w-full">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-indigo-700">
+              <h3 className="text-lg font-semibold text-blue-700">
                 Incorrect OTP
               </h3>
               <button
@@ -506,7 +506,7 @@ const Home = () => {
             </p>
             <button
               onClick={() => setShowOtpErrorModal(false)}
-              className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300"
+              className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300"
             >
               OK
             </button>
@@ -545,7 +545,7 @@ const Home = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-sm w-full">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-indigo-700">
+              <h3 className="text-lg font-semibold text-blue-700">
                 Account Not Verified
               </h3>
               <button
@@ -566,7 +566,7 @@ const Home = () => {
               For assistance, please contact us at:{" "}
               <a
                 href="mailto:zotoplatforms@gmail.com"
-                className="text-indigo-600 hover:text-indigo-800"
+                className="text-blue-600 hover:text-blue-800"
               >
                 zotoplatforms@gmail.com
               </a>
@@ -576,7 +576,7 @@ const Home = () => {
                 setShowVerificationModal(false);
                 window.location.reload();
               }}
-              className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300"
+              className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300"
             >
               Close
             </button>

@@ -1,34 +1,17 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
-import admin from "firebase-admin";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 import twilio from "twilio";
 import { format } from "date-fns";
+import bcryptjs from "bcryptjs";
 import { customAlphabet } from "nanoid";
+
 const nanoid = customAlphabet("23456789ABCDEFGHJKLMNPQRSTUVWXYZ", 8);
 
 const prisma = new PrismaClient();
 
-const clientServiceAccount = require("../../client-key.json");
-const clientApp = admin.initializeApp(
-  {
-    credential: admin.credential.cert(clientServiceAccount),
-  },
-  "CLIENT_APP"
-);
-
-const clientAuth = clientApp.auth();
-
 const clientRouter = express.Router();
-
-const authSchema = z.object({
-  email: z.string().email(),
-  name: z.string(),
-  phone: z.string(),
-  idToken: z.string(),
-  profilePicture: z.string().optional(),
-});
 
 const twilioClient = twilio(
   "AC9b3a91fd0d3d3587b836c14ee480d694",
@@ -53,57 +36,33 @@ async function sendWhatsAppNotification(to: string, body: string) {
   }
 }
 
-clientRouter.post("/auth", async (req, res) => {
+const loginSchema = z.object({
+  phone: z.string(),
+  password: z.string(),
+});
+
+const signupSchema = z.object({
+  name: z.string(),
+  phone: z.string(),
+  password: z.string(),
+  profilePicture: z.string().optional(),
+});
+
+clientRouter.post("/auth/login", async (req, res) => {
   try {
-    const { email, name, phone, idToken, profilePicture } = authSchema.parse(
-      req.body
-    );
+    const { phone, password } = loginSchema.parse(req.body);
 
-    const decodedToken = await clientAuth.verifyIdToken(idToken);
-
-    if (decodedToken.email !== email) {
-      return res.status(400).json({ message: "Email mismatch" });
-    }
-
-    let user = await prisma.user.findUnique({
-      where: { email: email },
+    const user = await prisma.user.findUnique({
+      where: { phone: phone },
     });
 
     if (!user) {
-      const generateUniqueReferralCode = async (): Promise<string> => {
-        while (true) {
-          const code = nanoid();
-          const existingUser = await prisma.user.findUnique({
-            where: { referralCode: code },
-          });
-          if (!existingUser) {
-            return code;
-          }
-        }
-      };
+      return res.status(404).json({ message: "User not found" });
+    }
 
-      const newReferralCode = await generateUniqueReferralCode();
-
-      user = await prisma.user.create({
-        data: {
-          email,
-          name,
-          phone,
-          profilePicture: profilePicture || null,
-          referralCode: newReferralCode,
-          walletBalance: 0,
-          referralActive: true,
-        },
-      });
-    } else {
-      user = await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          name,
-          phone,
-          profilePicture: profilePicture || user.profilePicture,
-        },
-      });
+    const isPasswordValid = await bcryptjs.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, {
@@ -116,7 +75,6 @@ clientRouter.post("/auth", async (req, res) => {
         user: {
           id: user.id,
           name: user.name,
-          email: user.email,
           phone: user.phone,
           profilePicture: user.profilePicture,
           referralCode: user.referralCode,
@@ -125,10 +83,87 @@ clientRouter.post("/auth", async (req, res) => {
         },
         token,
       },
-      message: "Authentication successful",
+      message: "Login successful",
     });
   } catch (error) {
-    console.error("Authentication error:", error);
+    console.error("Login error:", error);
+
+    if (error instanceof z.ZodError) {
+      return res
+        .status(400)
+        .json({ message: "Invalid input data", errors: error.errors });
+    }
+
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+clientRouter.post("/auth/signup", async (req, res) => {
+  try {
+    const { name, phone, password, profilePicture } = signupSchema.parse(
+      req.body
+    );
+
+    const existingUser = await prisma.user.findUnique({
+      where: { phone: phone },
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "Phone number already registered",
+      });
+    }
+
+    const generateUniqueReferralCode = async (): Promise<string> => {
+      while (true) {
+        const code = nanoid();
+        const existingUser = await prisma.user.findUnique({
+          where: { referralCode: code },
+        });
+        if (!existingUser) {
+          return code;
+        }
+      }
+    };
+
+    const newReferralCode = await generateUniqueReferralCode();
+
+    const hashedPassword = await bcryptjs.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        phone,
+        password: hashedPassword,
+        profilePicture: profilePicture || null,
+        referralCode: newReferralCode,
+        walletBalance: 0,
+        referralActive: true,
+      },
+    });
+
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, {
+      expiresIn: "7d",
+    });
+
+    return res.json({
+      status: 200,
+      data: {
+        user: {
+          id: user.id,
+          name: user.name,
+          phone: user.phone,
+          profilePicture: user.profilePicture,
+          referralCode: user.referralCode,
+          walletBalance: user.walletBalance,
+          referralActive: user.referralActive,
+        },
+        token,
+      },
+      message: "Signup successful",
+    });
+  } catch (error) {
+    console.error("Signup error:", error);
 
     if (error instanceof z.ZodError) {
       return res
