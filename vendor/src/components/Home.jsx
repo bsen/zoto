@@ -364,7 +364,7 @@ const Home = () => {
             className="text-indigo-500 font-semibold border border-white px-2 py-0.5 rounded-full bg-white cursor-pointer"
             onClick={() => setShowModal(true)}
           >
-            {vendorName}
+            {vendorName[0]}
           </div>
         ) : (
           <div></div>
@@ -392,7 +392,7 @@ const Home = () => {
           </div>
 
           <div id="available-orders">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <AnimatePresence>
                 {pendingOrders.map((order) => (
                   <OrderCard key={order.id} order={order} />
@@ -409,54 +409,6 @@ const Home = () => {
         <footer className="bg-indigo-600 text-white mt-16 py-12 border-t border-indigo-500">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div>
-                <h3 className="text-xl font-bold mb-4">About Zoto</h3>
-                <p className="text-sm">
-                  Zoto Platforms is a leading service company dedicated to
-                  making your life easier. We provide a wide range of home and
-                  vehicle maintenance services including room cleaning, bathroom
-                  sanitization, kitchen cleaning, AC servicing, washing machine
-                  repairs, and bike/car repairs. Our mission is to transform
-                  your daily living experience with our professional and
-                  reliable services.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-xl font-bold mb-4">Our Services</h3>
-                <ul className="space-y-2 text-sm">
-                  <li>Home Cleaning</li>
-                  <li>Bathroom Sanitization</li>
-                  <li>Kitchen Cleaning</li>
-                  <li>AC Servicing</li>
-                  <li>Washing Machine Repairs</li>
-                  <li>Bike & Car Repairs</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="text-xl font-bold mb-4">Quick Links</h3>
-                <ul className="space-y-2 text-sm">
-                  {/* <li>
-                    <Link
-                      to=""
-                      className="flex items-center text-yellow-300 hover:text-yellow-100 transition duration-300 group"
-                    >
-                      <FileText size={18} className="mr-2" />
-                      Terms & Conditions
-                      <span className="ml-1 block max-w-0 group-hover:max-w-full transition-all duration-500 h-0.5 bg-yellow-300"></span>
-                    </Link>
-                  </li> */}
-                  <li>
-                    <Link
-                      to="https://www.zotoplatforms.com/blogs"
-                      className="flex items-center text-yellow-300 hover:text-yellow-100 transition duration-300 group"
-                    >
-                      <BookOpen size={18} className="mr-2" />
-                      Blogs
-                      <span className="ml-1 block max-w-0 group-hover:max-w-full transition-all duration-500 h-0.5 bg-yellow-300"></span>
-                    </Link>
-                  </li>
-                </ul>
-              </div>
               <div className="flex flex-col justify-between">
                 <div>
                   <h3 className="text-xl font-bold mb-4">Connect With Us</h3>
