@@ -302,7 +302,7 @@ const Home = () => {
             z<span className="text-yellow-400">o</span>to
           </h1>
         </div>
-        <div className="w-32 h-6 bg-gray-200 rounded-full animate-pulse"></div>
+        <div className="text-indigo-500 size-8 flex justify-center items-center font-semibold border border-white  rounded-full bg-white cursor-pointer"></div>
       </div>
 
       <main>
@@ -361,7 +361,7 @@ const Home = () => {
         </div>
         {vendorName ? (
           <div
-            className="text-indigo-500 font-semibold border border-white px-2 py-0.5 rounded-full bg-white cursor-pointer"
+            className="text-indigo-500 size-8 flex justify-center items-center font-semibold border border-white  rounded-full bg-white cursor-pointer"
             onClick={() => setShowModal(true)}
           >
             {vendorName[0]}
