@@ -53,9 +53,9 @@ const Signup = () => {
     <div className="min-h-screen bg-indigo-600 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full mx-auto">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-white">
-            z<span className="text-yellow-400">o</span>to
-          </h1>
+          <Link to="/" className="flex items-center w-full justify-center">
+            <img src="/zoto.png" className="h-10 rounded" />
+          </Link>
           <p className="mt-2 text-2xl text-white">Create Account</p>
         </div>
 

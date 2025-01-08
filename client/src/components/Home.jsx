@@ -69,14 +69,7 @@ const Header = ({ user, setUser }) => {
     <header className="text-white p-2.5">
       <div className="container mx-auto flex justify-between items-center">
         <Link to="/" className="flex items-center">
-          <motion.h1
-            className="text-4xl font-bold"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            z<span className="text-yellow-400">o</span>to
-          </motion.h1>
+          <img src="/zoto.png" className="h-8 rounded" />
         </Link>
         <nav className="flex items-center">
           {user ? (
