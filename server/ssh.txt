@@ -1,0 +1,1 @@
+ssh -i "zoto-key.pem" ubuntu@ec2-65-0-107-129.ap-south-1.compute.amazonaws.com
