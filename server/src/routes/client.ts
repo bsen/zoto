@@ -98,6 +98,45 @@ clientRouter.post("/auth/login", async (req, res) => {
   }
 });
 
+clientRouter.post("/update/pass", async (req, res) => {
+  try {
+    const { phone, newPass } = req.body;
+    const user = await prisma.user.findFirst({
+      where: {
+        phone: phone,
+      },
+    });
+    if (!user) {
+      return res.json({
+        success: false,
+        message: "We could not found any account with this number",
+      });
+    }
+    const hashedPassword = await bcryptjs.hash(newPass, 10);
+
+    const update = await prisma.user.update({
+      where: {
+        phone,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
+    if (!update) {
+      return res.json({
+        success: false,
+        message: "Failed to update password",
+      });
+    }
+    return res.json({
+      success: true,
+      message: "Password updated successfuly",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 clientRouter.post("/auth/signup", async (req, res) => {
   try {
     const { name, phone, password, profilePicture } = signupSchema.parse(

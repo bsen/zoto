@@ -207,6 +207,45 @@ const verifyVendorToken = (
   );
 };
 
+vendorRouter.post("/update/pass", async (req, res) => {
+  try {
+    const { phone, newPass } = req.body;
+    const vendor = await prisma.vendor.findFirst({
+      where: {
+        phone: phone,
+      },
+    });
+    if (!vendor) {
+      return res.json({
+        success: false,
+        message: "We could not found any account with this number",
+      });
+    }
+    const hashedPassword = await bcryptjs.hash(newPass, 10);
+
+    const update = await prisma.vendor.update({
+      where: {
+        phone,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
+    if (!update) {
+      return res.json({
+        success: false,
+        message: "Failed to update password",
+      });
+    }
+    return res.json({
+      success: true,
+      message: "Password updated successfuly",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 vendorRouter.get(
   "/profile",
   verifyVendorToken,
