@@ -97,6 +97,44 @@ clientRouter.post("/auth/login", (req, res) => __awaiter(void 0, void 0, void 0,
         return res.status(500).json({ message: "Internal server error" });
     }
 }));
+clientRouter.post("/update/pass", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { phone, newPass } = req.body;
+        const user = yield prisma.user.findFirst({
+            where: {
+                phone: phone,
+            },
+        });
+        if (!user) {
+            return res.json({
+                success: false,
+                message: "We could not found any account with this number",
+            });
+        }
+        const hashedPassword = yield bcryptjs_1.default.hash(newPass, 10);
+        const update = yield prisma.user.update({
+            where: {
+                phone,
+            },
+            data: {
+                password: hashedPassword,
+            },
+        });
+        if (!update) {
+            return res.json({
+                success: false,
+                message: "Failed to update password",
+            });
+        }
+        return res.json({
+            success: true,
+            message: "Password updated successfuly",
+        });
+    }
+    catch (error) {
+        console.log(error);
+    }
+}));
 clientRouter.post("/auth/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, phone, password, profilePicture } = signupSchema.parse(req.body);
