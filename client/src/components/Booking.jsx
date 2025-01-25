@@ -27,29 +27,7 @@ const Booking = () => {
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const postcodes = [
-    "632001",
-    "632002",
-    "632004",
-    "632006",
-    "632007",
-    "632008",
-    "632009",
-    "632010",
-    "632011",
-    "632012",
-    "632013",
-    "632014",
-    "632055",
-    "632057",
-    "632058",
-    "632059",
-    "632102",
-    "632105",
-    "632106",
-    "632114",
-    "632806",
-  ];
+  const postcodes = ["631102", "631202", "631303"];
 
   useEffect(() => {
     fetchServiceData();
@@ -387,7 +365,7 @@ const Booking = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       required
                     >
-                      <option value="Vellore">Vellore</option>
+                      <option value="Sholinghur">Sholinghur</option>
                     </select>
                   </div>
                   <div>

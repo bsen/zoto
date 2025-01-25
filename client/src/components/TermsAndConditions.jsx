@@ -264,7 +264,7 @@ const TermsAndConditions = () => {
           </div>
 
           <p className="mt-8 text-center text-sm">
-            &copy; 2024 Zoto Platforms. All rights reserved.
+            &copy; 2025 Zoto Platforms. All rights reserved.
           </p>
         </div>
       </footer>

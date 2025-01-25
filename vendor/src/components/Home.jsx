@@ -31,6 +31,7 @@ const Home = () => {
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const navigate = useNavigate();
   const token = localStorage.getItem("vendorToken");
+  const date = new Date();
 
   const handleLogout = () => {
     localStorage.clear();
@@ -452,7 +453,7 @@ const Home = () => {
             </div>
 
             <p className="mt-8 text-center text-sm">
-              &copy; 2024 Zoto Platforms. All rights reserved.
+              &copy; {date.getFullYear()} Zoto Platforms. All rights reserved.
             </p>
           </div>
         </footer>

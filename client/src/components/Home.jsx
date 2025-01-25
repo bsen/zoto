@@ -218,6 +218,7 @@ const HomePage = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  const date = new Date();
 
   useEffect(() => {
     fetchServices();
@@ -483,7 +484,7 @@ const HomePage = () => {
           </div>
 
           <p className="mt-8 text-center text-sm">
-            &copy; 2024 Zoto Platforms. All rights reserved.
+            &copy; {date.getFullYear()} Zoto Platforms. All rights reserved.
           </p>
         </div>
       </footer>

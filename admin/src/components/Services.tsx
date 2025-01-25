@@ -79,7 +79,7 @@ const ServicesManagement: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:8080/api/admin/zotoplatforms/panel/categories",
+        "https://www.server.zotoplatforms.com/api/admin/zotoplatforms/panel/categories",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -99,7 +99,7 @@ const ServicesManagement: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:8080/api/admin/zotoplatforms/panel/categories/${selectedCategory}/services?page=${currentPage}`,
+        `https://www.server.zotoplatforms.com/api/admin/zotoplatforms/panel/categories/${selectedCategory}/services?page=${currentPage}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -130,7 +130,7 @@ const ServicesManagement: React.FC = () => {
     try {
       if (isEditing) {
         await axios.put(
-          `http://localhost:8080/api/admin/zotoplatforms/panel/categories/${selectedCategory}`,
+          `https://www.server.zotoplatforms.com/api/admin/zotoplatforms/panel/categories/${selectedCategory}`,
           categoryFormData,
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -138,7 +138,7 @@ const ServicesManagement: React.FC = () => {
         );
       } else {
         await axios.post(
-          "http://localhost:8080/api/admin/zotoplatforms/panel/categories",
+          "https://www.server.zotoplatforms.com/api/admin/zotoplatforms/panel/categories",
           categoryFormData,
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -161,7 +161,7 @@ const ServicesManagement: React.FC = () => {
     try {
       if (isEditing) {
         await axios.put(
-          `http://localhost:8080/api/admin/zotoplatforms/panel/services/${serviceFormData.id}`,
+          `https://www.server.zotoplatforms.com/api/admin/zotoplatforms/panel/services/${serviceFormData.id}`,
           serviceFormData,
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -169,7 +169,7 @@ const ServicesManagement: React.FC = () => {
         );
       } else {
         await axios.post(
-          "http://localhost:8080/api/admin/zotoplatforms/panel/services",
+          "https://www.server.zotoplatforms.com/api/admin/zotoplatforms/panel/services",
           serviceFormData,
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -198,7 +198,7 @@ const ServicesManagement: React.FC = () => {
     try {
       if (deleteType === "service") {
         await axios.delete(
-          `http://localhost:8080/api/admin/zotoplatforms/panel/services/${deleteId}`,
+          `https://www.server.zotoplatforms.com/api/admin/zotoplatforms/panel/services/${deleteId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -206,7 +206,7 @@ const ServicesManagement: React.FC = () => {
         fetchServices();
       } else {
         await axios.delete(
-          `http://localhost:8080/api/admin/zotoplatforms/panel/categories/${deleteId}`,
+          `https://www.server.zotoplatforms.com/api/admin/zotoplatforms/panel/categories/${deleteId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
