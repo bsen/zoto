@@ -863,4 +863,258 @@ adminRouter.put(
   }
 );
 
+adminRouter.get("/categories", async (req: Request, res: Response) => {
+  try {
+    const categories = await prisma.category.findMany({});
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching categories",
+      error: (error as Error).message,
+    });
+  }
+});
+
+// Get services by category
+adminRouter.get(
+  "/categories/:categoryId/services",
+  async (req: Request, res: Response) => {
+    const { categoryId } = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    try {
+      const services = await prisma.service.findMany({
+        where: { categoryId, status: true },
+        include: {
+          reviews: {
+            select: {
+              rating: true,
+            },
+          },
+        },
+        skip,
+        take: limit,
+      });
+
+      // Calculate average rating for each service
+      const servicesWithRating = services.map((service) => {
+        const avgRating =
+          service.reviews.length > 0
+            ? service.reviews.reduce((acc, curr) => acc + curr.rating, 0) /
+              service.reviews.length
+            : 0;
+
+        return {
+          ...service,
+          averageRating: Number(avgRating.toFixed(1)),
+          reviewCount: service.reviews.length,
+          reviews: undefined, // Remove the reviews array from response
+        };
+      });
+
+      const totalServices = await prisma.service.count({
+        where: { categoryId },
+      });
+
+      res.json({
+        services: servicesWithRating,
+        currentPage: page,
+        totalPages: Math.ceil(totalServices / limit),
+        totalServices,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error fetching services",
+        error: (error as Error).message,
+      });
+    }
+  }
+);
+
+// Create new service (Admin only)
+adminRouter.post(
+  "/services",
+  verifyAdminToken,
+  async (req: Request, res: Response) => {
+    const {
+      name,
+      description,
+      price,
+      discountedPrice,
+      images,
+      categoryId,
+      duration,
+      status,
+    } = req.body;
+
+    try {
+      if (!name || !description || !price || !categoryId) {
+        return res.status(400).json({
+          message: "Name, description, price, and categoryId are required",
+        });
+      }
+
+      // Verify category exists
+      const category = await prisma.category.findUnique({
+        where: { id: categoryId },
+      });
+
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+
+      const service = await prisma.service.create({
+        data: {
+          name,
+          description,
+          price: Number(price),
+          discountedPrice: discountedPrice ? Number(discountedPrice) : null,
+          images: images || [],
+          categoryId,
+          duration: duration ? Number(duration) : null,
+          status: Boolean(status),
+        },
+      });
+
+      res.status(201).json(service);
+    } catch (error) {
+      res.status(500).json({
+        message: "Error creating service",
+        error: (error as Error).message,
+      });
+    }
+  }
+);
+
+// Update service (Admin only)
+adminRouter.put(
+  "/services/:id",
+  verifyAdminToken,
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const {
+      name,
+      description,
+      price,
+      discountedPrice,
+      images,
+      categoryId,
+      duration,
+      status,
+    } = req.body;
+
+    try {
+      const existingService = await prisma.service.findUnique({
+        where: { id },
+      });
+
+      if (!existingService) {
+        return res.status(404).json({ message: "Service not found" });
+      }
+
+      if (categoryId) {
+        const category = await prisma.category.findUnique({
+          where: { id: categoryId },
+        });
+
+        if (!category) {
+          return res.status(404).json({ message: "Category not found" });
+        }
+      }
+
+      const updatedService = await prisma.service.update({
+        where: { id },
+        data: {
+          name,
+          description,
+          price: price ? Number(price) : undefined,
+          discountedPrice: discountedPrice ? Number(discountedPrice) : null,
+          images: images || undefined,
+          categoryId,
+          duration: duration ? Number(duration) : null,
+          status: status !== undefined ? Boolean(status) : undefined,
+        },
+      });
+
+      res.json(updatedService);
+    } catch (error) {
+      res.status(500).json({
+        message: "Error updating service",
+        error: (error as Error).message,
+      });
+    }
+  }
+);
+
+adminRouter.post(
+  "/categories",
+  verifyAdminToken,
+  async (req: Request, res: Response) => {
+    const { name } = req.body;
+
+    try {
+      if (!name) {
+        return res.status(400).json({ message: "Category name is required" });
+      }
+
+      const existingCategory = await prisma.category.findUnique({
+        where: { name },
+      });
+
+      if (existingCategory) {
+        return res.status(400).json({ message: "Category already exists" });
+      }
+
+      const category = await prisma.category.create({
+        data: { name },
+      });
+
+      res.status(201).json(category);
+    } catch (error) {
+      res.status(500).json({
+        message: "Error creating category",
+        error: (error as Error).message,
+      });
+    }
+  }
+);
+
+// Update category (Admin only)
+adminRouter.put(
+  "/categories/:id",
+  verifyAdminToken,
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { name } = req.body;
+
+    try {
+      if (!name) {
+        return res.status(400).json({ message: "Category name is required" });
+      }
+
+      const existingCategory = await prisma.category.findUnique({
+        where: { id },
+      });
+
+      if (!existingCategory) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+
+      const updatedCategory = await prisma.category.update({
+        where: { id },
+        data: { name },
+      });
+
+      res.json(updatedCategory);
+    } catch (error) {
+      res.status(500).json({
+        message: "Error updating category",
+        error: (error as Error).message,
+      });
+    }
+  }
+);
+
 export default adminRouter;
