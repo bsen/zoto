@@ -760,93 +760,10 @@ adminRouter.put("/vendors/:vendorId/verify", verifyAdminToken, (req, res) => __a
             .json({ message: "Error updating vendor verification status" });
     }
 }));
-adminRouter.get("/categories", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const categories = yield prisma.category.findMany({});
-        res.json(categories);
-    }
-    catch (error) {
-        res.status(500).json({
-            message: "Error fetching categories",
-            error: error.message,
-        });
-    }
-}));
-// Get services by category
-adminRouter.get("/categories/:categoryId/services", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { categoryId } = req.params;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-    try {
-        const services = yield prisma.service.findMany({
-            where: { categoryId, status: true },
-            include: {
-                reviews: {
-                    select: {
-                        rating: true,
-                    },
-                },
-            },
-            skip,
-            take: limit,
-        });
-        // Calculate average rating for each service
-        const servicesWithRating = services.map((service) => {
-            const avgRating = service.reviews.length > 0
-                ? service.reviews.reduce((acc, curr) => acc + curr.rating, 0) /
-                    service.reviews.length
-                : 0;
-            return Object.assign(Object.assign({}, service), { averageRating: Number(avgRating.toFixed(1)), reviewCount: service.reviews.length, reviews: undefined });
-        });
-        const totalServices = yield prisma.service.count({
-            where: { categoryId },
-        });
-        res.json({
-            services: servicesWithRating,
-            currentPage: page,
-            totalPages: Math.ceil(totalServices / limit),
-            totalServices,
-        });
-    }
-    catch (error) {
-        res.status(500).json({
-            message: "Error fetching services",
-            error: error.message,
-        });
-    }
-}));
-// Create new category (Admin only)
-adminRouter.post("/categories", verifyAdminToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, icon } = req.body;
-    try {
-        if (!name) {
-            return res.status(400).json({ message: "Category name is required" });
-        }
-        const existingCategory = yield prisma.category.findUnique({
-            where: { name },
-        });
-        if (existingCategory) {
-            return res.status(400).json({ message: "Category already exists" });
-        }
-        const category = yield prisma.category.create({
-            data: {
-                name,
-                icon,
-            },
-        });
-        res.status(201).json(category);
-    }
-    catch (error) {
-        res.status(500).json({
-            message: "Error creating category",
-            error: error.message,
-        });
-    }
-}));
-// Create new service (Admin only)
+// service
 adminRouter.post("/services", verifyAdminToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, description, price, discountedPrice, images, categoryId, duration, status, } = req.body;
+    const { name, description, price, discountedPrice, image, // Changed from images to image
+    categoryId, duration, status, } = req.body;
     try {
         if (!name || !description || !price || !categoryId) {
             return res.status(400).json({
@@ -866,13 +783,15 @@ adminRouter.post("/services", verifyAdminToken, (req, res) => __awaiter(void 0, 
                 description,
                 price: Number(price),
                 discountedPrice: discountedPrice ? Number(discountedPrice) : null,
-                images: images || [],
+                images: image ? [image] : [], // Convert single image to array
                 categoryId,
                 duration: duration ? Number(duration) : null,
                 status: Boolean(status),
             },
         });
-        res.status(201).json(service);
+        // Modify the response to send single image
+        const responseService = Object.assign(Object.assign({}, service), { image: service.images[0] || "", images: undefined });
+        res.status(201).json(responseService);
     }
     catch (error) {
         res.status(500).json({
@@ -881,37 +800,10 @@ adminRouter.post("/services", verifyAdminToken, (req, res) => __awaiter(void 0, 
         });
     }
 }));
-// Update category (Admin only)
-adminRouter.put("/categories/:id", verifyAdminToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id } = req.params;
-    const { name, icon } = req.body;
-    try {
-        if (!name) {
-            return res.status(400).json({ message: "Category name is required" });
-        }
-        const existingCategory = yield prisma.category.findUnique({
-            where: { id },
-        });
-        if (!existingCategory) {
-            return res.status(404).json({ message: "Category not found" });
-        }
-        const updatedCategory = yield prisma.category.update({
-            where: { id },
-            data: { name, icon },
-        });
-        res.json(updatedCategory);
-    }
-    catch (error) {
-        res.status(500).json({
-            message: "Error updating category",
-            error: error.message,
-        });
-    }
-}));
-// Update service (Admin only)
 adminRouter.put("/services/:id", verifyAdminToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
-    const { name, description, price, discountedPrice, images, categoryId, duration, status, } = req.body;
+    const { name, description, price, discountedPrice, image, // Changed from images to image
+    categoryId, duration, status, } = req.body;
     try {
         const existingService = yield prisma.service.findUnique({
             where: { id },
@@ -934,17 +826,186 @@ adminRouter.put("/services/:id", verifyAdminToken, (req, res) => __awaiter(void 
                 description,
                 price: price ? Number(price) : undefined,
                 discountedPrice: discountedPrice ? Number(discountedPrice) : null,
-                images: images || undefined,
+                images: image ? [image] : undefined, // Convert single image to array
                 categoryId,
                 duration: duration ? Number(duration) : null,
                 status: status !== undefined ? Boolean(status) : undefined,
             },
         });
-        res.json(updatedService);
+        // Modify the response to send single image
+        const responseService = Object.assign(Object.assign({}, updatedService), { image: updatedService.images[0] || "", images: undefined });
+        res.json(responseService);
     }
     catch (error) {
         res.status(500).json({
             message: "Error updating service",
+            error: error.message,
+        });
+    }
+}));
+adminRouter.get("/categories/:categoryId/services", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { categoryId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    try {
+        const services = yield prisma.service.findMany({
+            where: { categoryId, status: true },
+            include: {
+                reviews: {
+                    select: {
+                        rating: true,
+                    },
+                },
+            },
+            skip,
+            take: limit,
+        });
+        // Calculate average rating and modify image response
+        const servicesWithRating = services.map((service) => {
+            const avgRating = service.reviews.length > 0
+                ? service.reviews.reduce((acc, curr) => acc + curr.rating, 0) /
+                    service.reviews.length
+                : 0;
+            return Object.assign(Object.assign({}, service), { averageRating: Number(avgRating.toFixed(1)), reviewCount: service.reviews.length, image: service.images[0] || "", images: undefined, reviews: undefined });
+        });
+        const totalServices = yield prisma.service.count({
+            where: { categoryId },
+        });
+        res.json({
+            services: servicesWithRating,
+            currentPage: page,
+            totalPages: Math.ceil(totalServices / limit),
+            totalServices,
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: "Error fetching services",
+            error: error.message,
+        });
+    }
+}));
+// category
+adminRouter.post("/categories", verifyAdminToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name } = req.body;
+    try {
+        if (!name) {
+            return res.status(400).json({ message: "Category name is required" });
+        }
+        const existingCategory = yield prisma.category.findUnique({
+            where: { name },
+        });
+        if (existingCategory) {
+            return res.status(400).json({ message: "Category already exists" });
+        }
+        const category = yield prisma.category.create({
+            data: { name },
+        });
+        res.status(201).json(category);
+    }
+    catch (error) {
+        res.status(500).json({
+            message: "Error creating category",
+            error: error.message,
+        });
+    }
+}));
+adminRouter.get("/categories", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const categories = yield prisma.category.findMany({});
+        res.json(categories);
+    }
+    catch (error) {
+        res.status(500).json({
+            message: "Error fetching categories",
+            error: error.message,
+        });
+    }
+}));
+adminRouter.put("/categories/:id", verifyAdminToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const { name } = req.body;
+    try {
+        if (!name) {
+            return res.status(400).json({ message: "Category name is required" });
+        }
+        const existingCategory = yield prisma.category.findUnique({
+            where: { id },
+        });
+        if (!existingCategory) {
+            return res.status(404).json({ message: "Category not found" });
+        }
+        const updatedCategory = yield prisma.category.update({
+            where: { id },
+            data: { name },
+        });
+        res.json(updatedCategory);
+    }
+    catch (error) {
+        res.status(500).json({
+            message: "Error updating category",
+            error: error.message,
+        });
+    }
+}));
+// Delete category (Admin only)
+adminRouter.delete("/categories/:id", verifyAdminToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    try {
+        // Check if category exists
+        const category = yield prisma.category.findUnique({
+            where: { id },
+            include: {
+                services: true,
+            },
+        });
+        if (!category) {
+            return res.status(404).json({ message: "Category not found" });
+        }
+        // Check if category has any services
+        if (category.services.length > 0) {
+            return res.status(400).json({
+                message: "Cannot delete category that has services. Delete all services first.",
+            });
+        }
+        // Delete the category
+        yield prisma.category.delete({
+            where: { id },
+        });
+        res.json({ message: "Category deleted successfully" });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: "Error deleting category",
+            error: error.message,
+        });
+    }
+}));
+// Delete service (Admin only)
+adminRouter.delete("/services/:id", verifyAdminToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    try {
+        // Check if service exists
+        const service = yield prisma.service.findUnique({
+            where: { id },
+        });
+        if (!service) {
+            return res.status(404).json({ message: "Service not found" });
+        }
+        // Delete all reviews associated with the service first
+        yield prisma.review.deleteMany({
+            where: { serviceId: id },
+        });
+        // Delete the service
+        yield prisma.service.delete({
+            where: { id },
+        });
+        res.json({ message: "Service deleted successfully" });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: "Error deleting service",
             error: error.message,
         });
     }

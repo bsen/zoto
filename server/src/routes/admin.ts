@@ -863,77 +863,7 @@ adminRouter.put(
   }
 );
 
-adminRouter.get("/categories", async (req: Request, res: Response) => {
-  try {
-    const categories = await prisma.category.findMany({});
-    res.json(categories);
-  } catch (error) {
-    res.status(500).json({
-      message: "Error fetching categories",
-      error: (error as Error).message,
-    });
-  }
-});
-
-// Get services by category
-adminRouter.get(
-  "/categories/:categoryId/services",
-  async (req: Request, res: Response) => {
-    const { categoryId } = req.params;
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
-    const skip = (page - 1) * limit;
-
-    try {
-      const services = await prisma.service.findMany({
-        where: { categoryId, status: true },
-        include: {
-          reviews: {
-            select: {
-              rating: true,
-            },
-          },
-        },
-        skip,
-        take: limit,
-      });
-
-      // Calculate average rating for each service
-      const servicesWithRating = services.map((service) => {
-        const avgRating =
-          service.reviews.length > 0
-            ? service.reviews.reduce((acc, curr) => acc + curr.rating, 0) /
-              service.reviews.length
-            : 0;
-
-        return {
-          ...service,
-          averageRating: Number(avgRating.toFixed(1)),
-          reviewCount: service.reviews.length,
-          reviews: undefined, // Remove the reviews array from response
-        };
-      });
-
-      const totalServices = await prisma.service.count({
-        where: { categoryId },
-      });
-
-      res.json({
-        services: servicesWithRating,
-        currentPage: page,
-        totalPages: Math.ceil(totalServices / limit),
-        totalServices,
-      });
-    } catch (error) {
-      res.status(500).json({
-        message: "Error fetching services",
-        error: (error as Error).message,
-      });
-    }
-  }
-);
-
-// Create new service (Admin only)
+// service
 adminRouter.post(
   "/services",
   verifyAdminToken,
@@ -943,7 +873,7 @@ adminRouter.post(
       description,
       price,
       discountedPrice,
-      images,
+      image, // Changed from images to image
       categoryId,
       duration,
       status,
@@ -971,14 +901,21 @@ adminRouter.post(
           description,
           price: Number(price),
           discountedPrice: discountedPrice ? Number(discountedPrice) : null,
-          images: images || [],
+          images: image ? [image] : [], // Convert single image to array
           categoryId,
           duration: duration ? Number(duration) : null,
           status: Boolean(status),
         },
       });
 
-      res.status(201).json(service);
+      // Modify the response to send single image
+      const responseService = {
+        ...service,
+        image: service.images[0] || "", // Convert array to single image
+        images: undefined, // Remove images array from response
+      };
+
+      res.status(201).json(responseService);
     } catch (error) {
       res.status(500).json({
         message: "Error creating service",
@@ -988,7 +925,6 @@ adminRouter.post(
   }
 );
 
-// Update service (Admin only)
 adminRouter.put(
   "/services/:id",
   verifyAdminToken,
@@ -999,7 +935,7 @@ adminRouter.put(
       description,
       price,
       discountedPrice,
-      images,
+      image, // Changed from images to image
       categoryId,
       duration,
       status,
@@ -1031,14 +967,21 @@ adminRouter.put(
           description,
           price: price ? Number(price) : undefined,
           discountedPrice: discountedPrice ? Number(discountedPrice) : null,
-          images: images || undefined,
+          images: image ? [image] : undefined, // Convert single image to array
           categoryId,
           duration: duration ? Number(duration) : null,
           status: status !== undefined ? Boolean(status) : undefined,
         },
       });
 
-      res.json(updatedService);
+      // Modify the response to send single image
+      const responseService = {
+        ...updatedService,
+        image: updatedService.images[0] || "", // Convert array to single image
+        images: undefined, // Remove images array from response
+      };
+
+      res.json(responseService);
     } catch (error) {
       res.status(500).json({
         message: "Error updating service",
@@ -1048,6 +991,99 @@ adminRouter.put(
   }
 );
 
+adminRouter.get(
+  "/categories/:categoryId/services",
+  async (req: Request, res: Response) => {
+    const { categoryId } = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    try {
+      const services = await prisma.service.findMany({
+        where: { categoryId, status: true },
+        include: {
+          reviews: {
+            select: {
+              rating: true,
+            },
+          },
+        },
+        skip,
+        take: limit,
+      });
+
+      // Calculate average rating and modify image response
+      const servicesWithRating = services.map((service) => {
+        const avgRating =
+          service.reviews.length > 0
+            ? service.reviews.reduce((acc, curr) => acc + curr.rating, 0) /
+              service.reviews.length
+            : 0;
+
+        return {
+          ...service,
+          averageRating: Number(avgRating.toFixed(1)),
+          reviewCount: service.reviews.length,
+          image: service.images[0] || "", // Convert array to single image
+          images: undefined, // Remove images array from response
+          reviews: undefined, // Remove the reviews array from response
+        };
+      });
+
+      const totalServices = await prisma.service.count({
+        where: { categoryId },
+      });
+
+      res.json({
+        services: servicesWithRating,
+        currentPage: page,
+        totalPages: Math.ceil(totalServices / limit),
+        totalServices,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error fetching services",
+        error: (error as Error).message,
+      });
+    }
+  }
+);
+
+adminRouter.delete(
+  "/services/:id",
+  verifyAdminToken,
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+      const service = await prisma.service.findUnique({
+        where: { id },
+      });
+
+      if (!service) {
+        return res.status(404).json({ message: "Service not found" });
+      }
+
+      await prisma.review.deleteMany({
+        where: { serviceId: id },
+      });
+
+      await prisma.service.delete({
+        where: { id },
+      });
+
+      res.json({ message: "Service deleted successfully" });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error deleting service",
+        error: (error as Error).message,
+      });
+    }
+  }
+);
+
+// category
 adminRouter.post(
   "/categories",
   verifyAdminToken,
@@ -1081,7 +1117,18 @@ adminRouter.post(
   }
 );
 
-// Update category (Admin only)
+adminRouter.get("/categories", async (req: Request, res: Response) => {
+  try {
+    const categories = await prisma.category.findMany({});
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching categories",
+      error: (error as Error).message,
+    });
+  }
+});
+
 adminRouter.put(
   "/categories/:id",
   verifyAdminToken,
@@ -1111,6 +1158,45 @@ adminRouter.put(
     } catch (error) {
       res.status(500).json({
         message: "Error updating category",
+        error: (error as Error).message,
+      });
+    }
+  }
+);
+
+adminRouter.delete(
+  "/categories/:id",
+  verifyAdminToken,
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+      const category = await prisma.category.findUnique({
+        where: { id },
+        include: {
+          services: true,
+        },
+      });
+
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+
+      if (category.services.length > 0) {
+        return res.status(400).json({
+          message:
+            "Cannot delete category that has services. Delete all services first.",
+        });
+      }
+
+      await prisma.category.delete({
+        where: { id },
+      });
+
+      res.json({ message: "Category deleted successfully" });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error deleting category",
         error: (error as Error).message,
       });
     }
