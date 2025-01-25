@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import {
   FaPlus,
@@ -29,7 +29,7 @@ interface Service {
   price: number;
   discountedPrice: number | null;
   duration: number | null;
-  images: string[];
+  image: string;
   status: boolean;
   averageRating: number;
   reviewCount: number;
@@ -42,7 +42,7 @@ interface ServiceFormData {
   price: number;
   discountedPrice?: number;
   duration?: number;
-  images: string[];
+  image: string;
   categoryId: string;
   status: boolean;
 }
@@ -70,26 +70,16 @@ const ServicesManagement: React.FC = () => {
     name: "",
     description: "",
     price: 0,
-    images: [],
+    image: "",
     categoryId: "",
     status: true,
   });
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    if (selectedCategory) {
-      fetchServices();
-    }
-  }, [selectedCategory, currentPage]);
-
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:8080/api/admin/zotoplatforms/panel/categories", // Updated URL
+        "http://localhost:8080/api/admin/zotoplatforms/panel/categories",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -102,9 +92,9 @@ const ServicesManagement: React.FC = () => {
       setError("Failed to fetch categories");
       console.error("Error fetching categories:", err);
     }
-  };
+  }, [selectedCategory]);
 
-  const fetchServices = async () => {
+  const fetchServices = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -122,7 +112,17 @@ const ServicesManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCategory, currentPage]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  useEffect(() => {
+    if (selectedCategory) {
+      fetchServices();
+    }
+  }, [fetchServices]);
 
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,7 +182,7 @@ const ServicesManagement: React.FC = () => {
         name: "",
         description: "",
         price: 0,
-        images: [],
+        image: "",
         categoryId: selectedCategory,
         status: true,
       });
@@ -252,7 +252,7 @@ const ServicesManagement: React.FC = () => {
                 name: "",
                 description: "",
                 price: 0,
-                images: [],
+                image: "",
                 categoryId: selectedCategory,
                 status: true,
               });
@@ -334,6 +334,26 @@ const ServicesManagement: React.FC = () => {
                   >
                     <div className="flex justify-between items-start">
                       <div>
+                        {service.image && (
+                          <div className="w-20 h-20 bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                            <img
+                              src={
+                                service.image &&
+                                (service.image.startsWith("http://") ||
+                                  service.image.startsWith("https://"))
+                                  ? service.image
+                                  : "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png"
+                              }
+                              alt={service.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src =
+                                  "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png";
+                              }}
+                            />
+                          </div>
+                        )}
                         <h3 className="text-lg font-semibold">
                           {service.name}
                         </h3>
@@ -367,7 +387,7 @@ const ServicesManagement: React.FC = () => {
                               discountedPrice:
                                 service.discountedPrice || undefined,
                               duration: service.duration || undefined,
-                              images: service.images,
+                              image: service.image,
                               categoryId: selectedCategory, // Use the selected category
                               status: service.status,
                             });
@@ -509,6 +529,55 @@ const ServicesManagement: React.FC = () => {
                     className="mt-1 block w-full border rounded-md px-3 py-2"
                     required
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Image URL
+                  </label>
+                  <div className="mt-1 space-y-2">
+                    <input
+                      type="url"
+                      value={serviceFormData.image}
+                      onChange={(e) =>
+                        setServiceFormData({
+                          ...serviceFormData,
+                          image: e.target.value,
+                        })
+                      }
+                      placeholder="Enter image URL"
+                      className="block w-full border rounded-md px-3 py-2"
+                    />
+                    {serviceFormData.image && (
+                      <div className="flex items-center space-x-2 bg-gray-50 p-2 rounded-md">
+                        <div className="w-10 h-10 bg-gray-200 rounded overflow-hidden">
+                          <img
+                            src={serviceFormData.image}
+                            alt="Service preview"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = "/placeholder-image.jpg";
+                            }}
+                          />
+                        </div>
+                        <span className="text-sm text-gray-600 truncate flex-1">
+                          {serviceFormData.image}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setServiceFormData({
+                              ...serviceFormData,
+                              image: "",
+                            })
+                          }
+                          className="p-1 text-red-600 hover:bg-red-50 rounded-md"
+                        >
+                          <FaTimes />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
